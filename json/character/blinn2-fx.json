@@ -1,0 +1,15 @@
+{
+  "name" : "blinn2-fx",
+  "skinned" : true,
+  "type" : "phong",
+  "ambient" : [0.0,0.0,0.0,1],
+  "bump" : "textures/N_1024.png",
+  "bump_uv" : 2,
+  "diffuse" : "textures/Color_1024.png",
+  "diffuse_uv" : 1,
+  "emission" : "textures/SI%20512.png",
+  "emission_uv" : 0,
+  "shininess" : [10],
+  "specular" : "textures/S_1024.png",
+  "specular_uv" : 3
+}

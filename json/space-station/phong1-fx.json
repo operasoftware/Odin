@@ -1,0 +1,11 @@
+{
+  "name" : "phong1-fx",
+  "skinned" : false,
+  "type" : "phong",
+  "ambient" : [0,0,0,1],
+  "diffuse" : [0,0,0,1],
+  "emission" : "textures/mattePainting_pow2.png",
+  "emission_uv" : 0,
+  "shininess" : [10],
+  "specular" : [0.5,0.5,0.5,1]
+}

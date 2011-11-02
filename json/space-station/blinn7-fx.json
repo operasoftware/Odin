@@ -1,0 +1,13 @@
+{
+  "name" : "blinn7-fx",
+  "skinned" : false,
+  "type" : "phong",
+  "ambient" : [0,0,0,1],
+  "diffuse" : "textures/ConcreteTile2.png",
+  "diffuse_uv" : 1,
+  "emission" : "textures/main_lightmap.png",
+  "emission_uv" : 0,
+  "shininess" : [10],
+  "specular" : "textures/ConcreteTile2_S.png",
+  "specular_uv" : 2
+}

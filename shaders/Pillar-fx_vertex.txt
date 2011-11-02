@@ -1,0 +1,21 @@
+attribute vec3 aVertexPosition;
+
+#ifdef DIFFUSE_TEXTURE
+attribute vec2 aTextureCoord;
+#endif
+
+uniform mat4 uMMatrix;
+uniform mat4 uVPMatrix;
+
+varying vec4 vPosition;
+#ifdef DIFFUSE_TEXTURE
+varying vec2 vTextureCoord;
+#endif
+
+void main(void) {
+    vPosition = uMMatrix * vec4(aVertexPosition, 1.0);
+    gl_Position = uVPMatrix * vPosition;
+#ifdef DIFFUSE_TEXTURE
+    vTextureCoord = aTextureCoord;
+#endif
+}

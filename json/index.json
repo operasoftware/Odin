@@ -1,0 +1,6 @@
+{
+  "scenes" : [
+               { "name" : "./json/space-station.json", "anims" : [] },
+               { "name" : "./json/char_no_scale.json", "anims" : [ "./json/anim-idle_anim.json", "./json/anim-turn_anim.json", "./json/anim-walk_anim.json"] }
+             ]
+}

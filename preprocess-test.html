@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<script src='js/PreProcess.js'></script>
+	<script>
+		function doReq(defs,t, f) {
+			var request = new XMLHttpRequest();
+			request.t = t;
+			request.onreadystatechange = function() {
+				if (request.readyState == 1) {
+					request.overrideMimeType('text/plain');
+					request.send();
+				}
+
+				if (request.readyState == 4) {
+					if (request.status == 404)
+						alert("file does not exist");
+					else
+						document.getElementById(request.t).innerHTML = '<pre>' + doPreprocess(request.responseText, defs.split(' ')) + '</pre>';
+				}
+			}
+			request.open("GET", f, true);
+		}
+
+		function handleClick(v) {
+			doReq(v, 'f', 'shaders/standard_fragment.txt');
+			doReq(v, 'v', 'shaders/standard_vertex.txt');
+		}
+	</script>
+	<form>
+		defined: <input type='text' id='defs'/>
+		<input type='button' onclick="handleClick(document.getElementById('defs').value);" value='preprocess' />
+	</form>
+	<div id='v' style='border: solid 1px black'></div>
+	<div id='f' style='border: solid 1px black'></div>
+</html>

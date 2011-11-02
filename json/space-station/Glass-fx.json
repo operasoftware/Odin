@@ -1,0 +1,11 @@
+{
+  "name" : "Glass-fx",
+  "skinned" : false,
+  "type" : "phong",
+  "ambient" : [0,0,0,1],
+  "diffuse" : "textures/glass.png",
+  "diffuse_uv" : 0,
+  "emission" : [0,0,0,1],
+  "shininess" : [10],
+  "specular" : [0,0.2603494,0.2603494,1]
+}

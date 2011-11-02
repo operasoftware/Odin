@@ -1,0 +1,4 @@
+Odin is a demo created to showcase what you can do with WebGL and hopefully inspire people to create great content for the web.
+It uses collada as a source format and aims to be able to read both COLLADA directly as well as a run-time format created from COLLADA suitable for releases.
+
+The demo, the viewer and the COLLADA pipeline is still a work in progress.

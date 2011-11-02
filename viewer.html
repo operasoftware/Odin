@@ -1,0 +1,422 @@
+﻿<html>
+  <head>
+    <title>COLLADA WebGL viewer</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <script type="text/javascript" src="js/Collada.js"></script>
+    <script type="text/javascript" src="js/PreProcess.js"></script>
+    <script type="text/javascript" src="js/Loader.js"></script>
+    <script type="text/javascript" src="js/VectorMath.js"></script>
+    <script type="text/javascript" src="js/Animation.js"></script>
+    <script type="text/javascript" src="js/Material.js"></script>
+    <script type="text/javascript" src="js/MaterialCache.js"></script>
+    <script type="text/javascript" src="js/TextureCache.js"></script>
+    <script type="text/javascript" src="js/Node.js"></script>
+    <script type="text/javascript" src="js/Mesh.js"></script>
+    <script type="text/javascript" src="js/DebugDraw.js"></script>
+    <script type="text/javascript" src="js/Joint.js"></script>
+    <script type="text/javascript" src="js/Scene.js"></script>
+    <script type="text/javascript" src="js/Light.js"></script>
+    <script type="text/javascript" src="js/Camera.js"></script>
+    <script type="text/javascript" src="js/PostProcess.js"></script>
+
+    <script language="javascript" type="text/javascript">
+      var canvas;
+      var gl;
+      var drawScene = true;
+      var drawSkel = true;
+      var drawWorld = true;
+      var scene;
+      var sceneIsLoaded = false;
+      var sceneList;
+      var statusBar;
+      var lastStatus;
+      var toolBar;
+      var toolBarWidth;
+      var toolBarShowing = true;
+      var outliner;
+      var lastMouseX;
+      var lastMouseY;
+      var middleDown = false;
+
+      function checkStatusTimeout() {
+        if (new Date() - lastStatus >= 3000) {
+          statusBar.style.bottom = "-20px";
+        }
+      }
+
+      function setStatusMessage(msg) {
+        if (!statusBar)
+          statusBar = document.getElementById("text");
+        if (statusBar) {
+          statusBar.style.bottom = "0px";
+          statusBar.innerHTML = msg;
+          lastStatus = new Date();
+          setTimeout("checkStatusTimeout();", 3200);
+        }
+      }
+
+      function ErrorMessage(msg) {
+        setStatusMessage(msg);
+      }
+
+      function InfoMessage(msg) {
+        setStatusMessage(msg);
+      }
+
+      function showTools(doshow) {
+        if (!toolBar)
+          toolBar = document.getElementById("configview");
+        if (toolBar) {
+          toolBarWidth = parseInt(window.getComputedStyle(toolBar).width, 10);
+          if (doshow)
+            toolBar.style.left = "0px";
+          else
+            toolBar.style.left = '-' + toolBarWidth + 'px';
+        }
+        toolBarShowing = doshow;
+      }
+
+      function outlinerClicked(evt) {
+        var index = Math.floor((evt.clientY - outliner.offsetTop + outliner.scrollTop) / 30);
+        if (outliner.children.length > index) {
+          var cameraParent = outliner.children[index].node;
+          scene.currentCamera = cameraParent.children[0];
+          update();
+        }
+
+      }
+
+      function clearOutliner() {
+        if (!outliner) {
+          outliner = document.getElementById("outliner");
+          outliner.onclick = outlinerClicked;
+        }
+        while (outliner.firstChild)
+          outliner.removeChild(outliner.firstChild);
+      }
+
+      function addToOutliner(node) {
+        if (!outliner) {
+          outliner = document.getElementById("outliner");
+          outliner.onclick = outlinerClicked;
+        }
+        var newdiv = document.createElement('div');
+        newdiv.setAttribute('id', node.name);
+        var img = "<img src='images/camera.png' style='vertical-align:middle'></img>";
+        newdiv.innerHTML = img + node.name;
+        if (outliner.children.length % 2)
+          newdiv.style.backgroundColor = "#aaa";
+        newdiv.node = node;
+        outliner.appendChild(newdiv);
+      }
+
+      function onMouseDown(evt) {
+        if (evt.button == 0)
+          middleDown = true;
+      }
+
+      function onMouseUp(evt) {
+        if (evt.button == 0)
+          middleDown = false;
+      }
+
+      function onMouseMove(evt) {
+        if (evt.clientX < 20) {
+          showTools(true);
+        } else if (evt.clientX > toolBarWidth) {
+          showTools(false);
+        }
+        if (toolBarShowing && evt.clientX < toolBarWidth) {
+          return;
+        }
+        if (middleDown) {
+          var dx = evt.clientX - lastMouseX;
+          var dy = evt.clientY - lastMouseY;
+          scene.currentCamera.parent.zoom(-dx / 100, dy / 100);
+          update();
+        }
+        lastMouseX = evt.clientX;
+        lastMouseY = evt.clientY;
+      }
+
+      function KeyDownListener(e) {
+        if (e.keyCode == 37)
+          scene.currentCamera.parent.pan(-0.1,0);
+        else if (e.keyCode == 38)
+          scene.currentCamera.parent.pan(0,0.1);
+        else if (e.keyCode == 39)
+          scene.currentCamera.parent.pan(0.1,0);
+        else if (e.keyCode == 40)
+          scene.currentCamera.parent.pan(0,-0.1);
+        else
+          return;
+        update();
+      }
+
+      function loadScene() {
+        sceneIsLoaded = false;
+        var sceneName = document.getElementById("scene_select").value;
+        if (sceneName != "---") {
+          setStatusMessage("Loading scene.");
+          scene = new Scene(sceneName, function () { sceneLoaded(); }, canvas.width / canvas.height);
+        }
+        var animSelect = document.getElementById("anim_select");
+        for (var m in sceneList.scenes) {
+          if (sceneList.scenes[m].name == sceneName) {
+            animSelect.options.length = 1;
+            for (anim in sceneList.scenes[m].anims) {
+              var newOpt = document.createElement('option');
+              newOpt.text = sceneList.scenes[m].anims[anim];
+              newOpt.value = sceneList.scenes[m].anims[anim];
+              animSelect.add(newOpt, null);
+            }
+            break;
+          }
+        }
+      }
+
+      function animationLoaded() {
+        update();
+      }
+
+      function loadAnimation() {
+        if (sceneIsLoaded) {
+          var animationName = document.getElementById("anim_select").value;
+          if (animationName != "---") {
+            var that = this;
+            scene.loadAnimation(animationName, 'animation', true, function() { that.animationLoaded(); });
+          }
+          else {
+            scene.resetToBindPose(scene.skeleton, null);
+            scene.animation = null;
+          }
+        }
+      }
+
+      function sceneLoaded() {
+        sceneIsLoaded = true;
+        var cameras = scene.findNodesByType("camera", true);
+        clearOutliner();
+        for (var c = 0; c < cameras.length; ++c) {
+          addToOutliner(cameras[c]);
+          if (cameras[c].name == "persp")
+            scene.currentCamera = cameras[c].children[0];
+        }
+        showTools(false);
+        setStatusMessage("Rendering scene with " + scene.getNumRoots() + " root nodes.");
+        update();
+      }
+
+      function initWebGL() {
+        statusBar = document.getElementById("text");
+        canvas = document.getElementById("my-canvas");
+        gl = canvas.getContext("experimental-webgl");
+        if (gl) {
+          gl.getExtension("OES_standard_derivatives");
+          gl.clearColor(0.75, 0.75, 0.75, 1.0);
+
+          gl.clearDepth(1.0);
+          gl.enable(gl.DEPTH_TEST);
+          gl.depthFunc(gl.LEQUAL);
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+          dbgDraw = new DebugDraw();
+          window.addEventListener('keydown', KeyDownListener, false);
+
+          lastTime = (new Date()).getTime();
+          update();
+        }
+      }
+
+      function update() {
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+        var currTime = (new Date()).getTime();
+        var dt = (currTime - lastTime) / 1000.0;
+        lastTime = currTime;
+
+        if (scene && sceneIsLoaded) {
+          if (scene.currentCamera) {
+            scene.currentCamera.setMatrices();
+          } else {
+            projectionMatrix().makePerspective(45, canvas.width/canvas.height, 0.1, 1000.0);
+          }
+
+          scene.update(dt);
+
+          if (drawScene) {
+            modelMatrix().makeIdentity();
+            scene.draw();
+          }
+          if (drawSkel) {
+            modelMatrix().makeIdentity();
+            scene.drawSkeleton(dbgDraw, 1);
+          }
+
+          if (drawWorld) {
+            modelMatrix().makeIdentity();
+
+            // TODO: this needs to be fixed.
+            for (var x = -5; x < 6; ++x)
+              dbgDraw.drawLine(x,0,-5, x,0,5, dbgDraw.WHITE, 1);
+            for (var z = -5; z < 6; ++z)
+              dbgDraw.drawLine(-5,0,z, 5,0,z, dbgDraw.WHITE, 1);
+
+            dbgDraw.drawLine(0,0,0, 5,0,0, dbgDraw.RED, 1);
+            dbgDraw.drawLine(0,0,0, 0,5,0, dbgDraw.GREEN, 1);
+            dbgDraw.drawLine(0,0,0, 0,0,5, dbgDraw.BLUE, 1);
+          }
+
+          dbgDraw.draw();
+          if (scene.animation) {
+            setTimeout(update, 33);
+          }
+        }
+      }
+
+      function updateVisibility() {
+        var checkboxes = document.getElementById("checkbox_form");
+        drawScene = checkboxes.mesh_visibility.checked;
+        drawSkel = checkboxes.skeleton_visibility.checked;
+        drawWorld = checkboxes.world_visibility.checked;
+        update();
+      }
+
+      function initSceneList() {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+          if (request.readyState == 1) {
+            request.overrideMimeType('application/json');
+            request.send();
+          }
+
+          if (request.readyState == 4) {
+            sceneList = JSON.parse(request.responseText);
+            var sceneSelect = document.getElementById("scene_select");
+            for (var m in sceneList.scenes) {
+              var newOpt = document.createElement('option');
+              newOpt.text = sceneList.scenes[m].name;
+              newOpt.value = sceneList.scenes[m].name;
+              sceneSelect.add(newOpt, null);
+            }
+          }
+        }
+        request.open("GET", 'json/index.json', true);
+      }
+
+      function resizeGame() {
+        var gameArea = document.getElementById('rtArea');
+        var newWidth = window.innerWidth;
+        var newHeight = window.innerHeight;
+
+        gameArea.style.width = newWidth + 'px';
+        gameArea.style.height = newHeight + 'px';
+
+        gameArea.style.marginTop = (-newHeight / 2) + 'px';
+        gameArea.style.marginLeft = (-newWidth / 2) + 'px';
+
+        canvas.offsetX = (window.innerWidth - newWidth) / 2;
+        canvas.offsetY = (window.innerHeight - newHeight) / 2;
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        update();
+      }
+
+      window.addEventListener('resize', resizeGame, false);
+      window.addEventListener('orientationchange', resizeGame, false);
+      window.addEventListener('mousemove', onMouseMove, false);
+      window.addEventListener('mousedown', onMouseDown, false);
+      window.addEventListener('mouseup', onMouseUp, false);
+
+    </script>
+    <style type="text/css">
+      #rtArea {
+        position: absolute;
+        left:     50%;
+        top:      50%;
+        /*overflow: hidden;*/
+      }
+
+      #my-canvas {
+        display: block;
+        /*width: 100%;
+        height: 100%;*/
+      }
+
+      #configview {
+        -o-transition-property: left;
+        -o-transition-duration: 1s;
+        -moz-transition-property: left;
+        -moz-transition-duration: 1s;
+        -webkit-transition-property: left;
+        -webkit-transition-duration: 1s;
+        border: 10px;
+        position: fixed;
+        height: 100%;
+        width: 200px;
+        /*overflow: hidden;*/
+        top: 0;
+        left: 0;
+        opacity: 0.8;
+        font-size: 16px;
+        text-align: left;
+        color: white;
+        background: gray;
+      }
+
+      #text {
+        -o-transition-property: bottom;
+        -o-transition-duration: 1s;
+        -moz-transition-property: bottom;
+        -moz-transition-duration: 1s;
+        -webkit-transition-property: bottom;
+        -webkit-transition-duration: 1s;
+        position: fixed;
+        width: 100%;
+        height: 20px;
+        bottom: -20;
+        opacity: 0.5;
+        font-size: 18px;
+        text-align: center;
+        color: white;
+        background: red;
+      }
+    </style>    
+  </head>
+  <body onload="initSceneList(); initWebGL();resizeGame();" style="font-family: impact, sans-serif; font-size:10pt;">
+    <div id="rtArea">
+      <canvas id="my-canvas"></canvas>
+      <div id="configview">
+        <div id="outliner-title" style="padding-left:10px; box-sizing:border-box; width: 100%; background-color:black; color:#05a5e0">Outliner</div>
+        <div id="outliner" style="width: 100%; height:180px;background-color:#777;overflow:auto"></div>
+        <div id="display-title" style="padding-left:10px; box-sizing:border-box; width: 100%; background-color:black; color:#05a5e0">Display</div>
+        <div style="width:100%;box-sizing:border-box;padding-left:10px;padding-right:10px">
+          <form id="checkbox_form">
+            <input type="checkbox" id="mesh_visibility" checked="true" onclick="updateVisibility()" style="border:solid 1px black"/> Display Meshes<br/>
+            <input type="checkbox" id="skeleton_visibility" checked="true" onclick="updateVisibility()" style="border:solid 1px black"/> Display Skeleton<br/>
+            <input type="checkbox" id="world_visibility" checked="true" onclick="updateVisibility()" style="border:solid 1px black"/> Display World<br/>
+          </form>
+        </div>
+        <div id="file-title" style="padding-left:10px; box-sizing:border-box; width: 100%; background-color:black; color:#05a5e0">Files</div>
+        <div style="width:100%;box-sizing:border-box;padding-left:10px;padding-right:10px">
+          Scene:<br>
+          <select id="scene_select" onchange="loadScene();" style="width:100%;border:solid 1px black">
+            <option value="---" selected="selected">---</option>
+          </select>
+        </div>
+        <br/>
+        <div style="width:100%;box-sizing:border-box;padding-left:10px;padding-right:10px">
+          Anim:<br>
+          <select id="anim_select" onchange="loadAnimation();" style="width:100%;border:solid 1px black">
+            <option value="---" selected="selected">---</option>
+          </select>
+        </div>
+          <br/>
+      </div>
+      <div id="text"></div>
+    </div>
+  </body>
+</html>

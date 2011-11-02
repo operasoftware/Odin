@@ -1,0 +1,59 @@
+{
+  "nodes" : 
+  [
+    { "type" : "node", "name" : "RIG_solo", "translate" : [0, 0, 0], "rotate" : [0, 0, 0], "scale" : [1, 1, 1], "children" : [
+      { "type" : "node", "name" : "RIG_joints_grp", "translate" : [0, 0, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "joint", "name" : "bj_root", "bindTranslation" :[0, 0, 0], "bindRotation" : [0, 0, 0], "jointOrient" : [0.013951, 0, 0], "postRotate" : [0.7803711, 0, 0], "children" : [
+          { "type" : "joint", "name" : "bj_COG", "bindTranslation" :[0.9041184, 10.6207, -1.179358], "bindRotation" : [0, 0, 0], "jointOrient" : [-0.7618697, 0, 0], "postRotate" : [0.7618697, 0, 0], "children" : [
+            { "type" : "joint", "name" : "bj_spineRoot", "bindTranslation" :[0, 0, 0], "bindRotation" : [-2.963601, -8.691995, -2.910036], "jointOrient" : [-179.1666, 0, 180], "postRotate" : [-3.750809, 0, 0], "children" : [
+              { "type" : "joint", "name" : "bj_chest", "bindTranslation" :[0, 1.710774, 0.1100414], "bindRotation" : [-3.408639, -8.016404, -4.652469], "jointOrient" : [3.681163, 0, 0], "postRotate" : [-8.20581, 0, 0], "children" : [
+                { "type" : "joint", "name" : "bj_neckRoot", "bindTranslation" :[0, 2.872519, -0.2603679], "bindRotation" : [11.07234, 5.602363, 1.149489], "jointOrient" : [25.42642, 0, 0], "postRotate" : [-27.22967, 0, 0], "children" : [
+                  { "type" : "joint", "name" : "bj_head", "bindTranslation" :[0, 0.8412964, 0.5454057], "bindRotation" : [1.603523, 8.589031, 2.909886], "jointOrient" : [9.970071, 0, 0], "postRotate" : [0, 0, 0]}
+                ]},
+                { "type" : "joint", "name" : "bj_L_clavicle", "bindTranslation" :[0.3181662, 2.147406, 0.03433269], "bindRotation" : [-4.166288, -0.07296783, -1.808549], "jointOrient" : [0.057488, 8.032577, -89.48751], "postRotate" : [178.5763, -88.61498, 179.7818], "children" : [
+                  { "type" : "joint", "name" : "bj_L_shoulder", "bindTranslation" :[-0.3487489, 1.85798, -0.2393546], "bindRotation" : [-19.49003, 5.670183, -18.07758], "jointOrient" : [-93.73047, 45.64685, -92.62478], "postRotate" : [0, 0, 0], "children" : [
+                    { "type" : "joint", "name" : "bj_L_elbow", "bindTranslation" :[0.05880454, 2.747025, 0.05386012], "bindRotation" : [-1.356114, 0, 0], "jointOrient" : [51.93431, -3.153543, 0.6189273], "postRotate" : [0, -37.22785, 0], "children" : [
+                      { "type" : "joint", "name" : "bj_L_wrist", "bindTranslation" :[-0.1778838, 2.371249, -0.2293983], "bindRotation" : [0, 0, 0], "jointOrient" : [-7.693209, 39.00606, -2.240701], "postRotate" : [9.006295, -39.32423, -3.586556]}
+                    ]}
+                  ]}
+                ]},
+                { "type" : "joint", "name" : "bj_R_clavicle", "bindTranslation" :[-0.318166, 2.147453, 0.0343399], "bindRotation" : [5.236345, -2.169193, -1.917371], "jointOrient" : [-179.9425, -8.032577, 89.48751], "postRotate" : [0, 0, 0], "children" : [
+                  { "type" : "joint", "name" : "bj_R_shoulder", "bindTranslation" :[-0.3008852, -1.850326, 0.3417481], "bindRotation" : [-21.71049, 10.40771, -26.72171], "jointOrient" : [-0.8608915, 0.8678666, -45.9416], "postRotate" : [0, 0, 0], "children" : [
+                    { "type" : "joint", "name" : "bj_R_elbow", "bindTranslation" :[-0.0588076, -2.747023, -0.05386006], "bindRotation" : [-9.769515, 0, 0], "jointOrient" : [51.93431, -3.153543, 0.6189273], "postRotate" : [0, 0, 0], "children" : [
+                      { "type" : "joint", "name" : "bj_R_wrist", "bindTranslation" :[0.00285297, -2.371255, 0.2902752], "bindRotation" : [0, 0, 0], "jointOrient" : [-6.337167, 1.798823, -1.741885], "postRotate" : [0, 0, 0]}
+                    ]}
+                  ]}
+                ]},
+                { "type" : "joint", "name" : "bj_harness_main", "bindTranslation" :[0, 2.784781, 0.188085], "bindRotation" : [0, 0, 0], "jointOrient" : [171.7636, 0, 180], "postRotate" : [0, 0, 0], "children" : [
+                  { "type" : "joint", "name" : "bj_harness_padBig", "bindTranslation" :[-1.6953, 0.141024, 0.2607302], "bindRotation" : [0, 0, 0], "jointOrient" : [1.975576, 6.676362, 106.5253], "postRotate" : [6.961252, 0, -106.4101]},
+                  { "type" : "joint", "name" : "bj_harness_padSmall", "bindTranslation" :[1.641814, 0.141024, 0.3744311], "bindRotation" : [0, 0, 0], "jointOrient" : [2.037478, -6.657809, -107.0585], "postRotate" : [6.961252, 0, 106.94]}
+                ]}
+              ]}
+            ]},
+            { "type" : "joint", "name" : "bj_pelvis", "bindTranslation" :[0, 0, 0], "bindRotation" : [-8.403936, 22.38631, -4.245747], "jointOrient" : [179.0654, 0, 0], "postRotate" : [1.728904, 0, 0], "children" : [
+              { "type" : "joint", "name" : "bj_L_hip", "bindTranslation" :[-1.093311, 1.517099, -0.03888182], "bindRotation" : [15.71557, -35.28881, 17.05604], "jointOrient" : [-1.671761, 0, 0], "postRotate" : [3.99778, 0, 0], "children" : [
+                { "type" : "joint", "name" : "bj_L_knee", "bindTranslation" :[0, 4.464725, -0.3169275], "bindRotation" : [-15.17341, 7.71267e-4, -0.01167107], "jointOrient" : [-13.69354, 0.04425968, -0.001797784], "postRotate" : [0.2320798, 0, 180], "children" : [
+                  { "type" : "joint", "name" : "bj_L_ankle", "bindTranslation" :[-6.08286e-4, -4.110774, 0.04058781], "bindRotation" : [-1.60148, -13.19133, -6.44529], "jointOrient" : [77.73943, -0.0433915, 179.9911], "postRotate" : [0, 0, 0], "children" : [
+                    { "type" : "joint", "name" : "bj_L_toe", "bindTranslation" :[0, 1.741616, -0.1062748], "bindRotation" : [0, 0, 0], "jointOrient" : [23.8602, 0, 0], "postRotate" : [0, 0, 0], "children" : [
+                      { "type" : "joint", "name" : "bj_L_toeTip", "bindTranslation" :[0, 0.7852713, -0.02177926], "bindRotation" : [0, 0, 0], "jointOrient" : [0, 0, 0], "postRotate" : [0, 0, 0]}
+                    ]}
+                  ]}
+                ]}
+              ]},
+              { "type" : "joint", "name" : "bj_R_hip", "bindTranslation" :[1.09331, 1.517104, -0.03888154], "bindRotation" : [6.112601, -21.22754, 1.754857], "jointOrient" : [178.3282, 0, 0], "postRotate" : [0, 0, 0], "children" : [
+                { "type" : "joint", "name" : "bj_R_knee", "bindTranslation" :[0, -4.475952, 0.00488591], "bindRotation" : [-13.57756, 8.36007e-4, -0.01043904], "jointOrient" : [-9.695761, 0.04427732, 0.001292279], "postRotate" : [0, 0, 0], "children" : [
+                  { "type" : "joint", "name" : "bj_R_ankle", "bindTranslation" :[-6.08285e-4, -4.110905, -0.02393664], "bindRotation" : [11.84254, -7.188511, -3.33449], "jointOrient" : [77.50735, -0.04342722, -0.008730851], "postRotate" : [0, 0, 0], "children" : [
+                    { "type" : "joint", "name" : "bj_R_toe", "bindTranslation" :[0, -1.741618, 0.1062741], "bindRotation" : [0, 0, 0], "jointOrient" : [23.8602, 0, 0], "postRotate" : [0, 0, 0], "children" : [
+                      { "type" : "joint", "name" : "bj_R_toeTip", "bindTranslation" :[0, -0.785268, 0.02177917], "bindRotation" : [0, 0, 0], "jointOrient" : [0, 0, 0], "postRotate" : [0, 0, 0]}
+                    ]}
+                  ]}
+                ]}
+              ]},
+              { "type" : "joint", "name" : "bj_hipPlate", "bindTranslation" :[1.606056, 0.3496374, 0.548943], "bindRotation" : [0, 0, -8.941091], "jointOrient" : [-4.313083, -25.6316, -11.85807], "postRotate" : [10.22947, 23.99762, 15.01932]}
+            ]}
+          ]}
+        ]}
+      ]}
+    ]}
+  ]
+}

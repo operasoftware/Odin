@@ -1,0 +1,86 @@
+{
+  "nodes" : 
+  [
+    { "type" : "node", "name" : "persp", "translate" : [-2.813762, 1.180501, 11.68475], "rotate" : [-0.3383408, 6469, 0], "scale" : [1, 1, 1], "rotatePivot" : [0, 0, 0], "children" : [
+      { "type" : "camera", "subtype" : "perspective", "yfov" : 37.84928, "znear" : 0.1, "zfar" : 10000.0 }
+    ]},
+    { "type" : "node", "name" : "top", "translate" : [-0.4607509, 30, 2.713311], "rotate" : [-90, 0, 0], "scale" : [1, 1, 1], "children" : [
+      { "type" : "camera", "subtype" : "orthographic", "xmag" : 13.64334, "znear" : 0.1, "zfar" : 10000.0 }
+    ]},
+    { "type" : "node", "name" : "front", "translate" : [-0.1991616, 1.006371, 100.1], "scale" : [1, 1, 1], "children" : [
+      { "type" : "camera", "subtype" : "orthographic", "xmag" : 5.764667, "znear" : 0.1, "zfar" : 10000.0 }
+    ]},
+    { "type" : "node", "name" : "side", "translate" : [100.1, 1.192381, 1.620239], "rotate" : [0, 90, 0], "scale" : [1, 1, 1], "children" : [
+      { "type" : "camera", "subtype" : "orthographic", "xmag" : 5.370502, "znear" : 0.1, "zfar" : 10000.0 }
+    ]},
+    { "type" : "node", "name" : "matte_grp", "translate" : [0, 0, 0], "scale" : [0.87, 0.87, 0.87], "children" : [
+      { "type" : "node", "name" : "matte_geo", "translate" : [0, 8.055238, -161.3018], "rotate" : [90, 0, 0], "scale" : [0.04673177, 0.04673177, 0.04673177], "children" : [
+        { "type" : "mesh", "file" : "./json/space-station/matte_geoShape.json" }
+      ]}
+    ]},
+    { "type" : "node", "name" : "Space_Station_grp", "translate" : [0, 0, 0], "scale" : [1, 1, 1], "children" : [
+      { "type" : "node", "name" : "Walls_geo", "translate" : [-2.33, 4.151841, -1.904052], "scale" : [1, 1, 1], "rotatePivot" : [2.287803, -24.08894, 5.844801], "scalePivot" : [2.287803, -24.08894, 5.844801], "children" : [
+        { "type" : "mesh", "file" : "./json/space-station/Walls_geoShape.json" }
+      ]},
+      { "type" : "node", "name" : "MainSection_geo", "translate" : [-2.293179, 4.151841, -1.912069], "scale" : [1, 1, 1], "rotatePivot" : [2.286323, 3.44986, 1.904691], "scalePivot" : [2.286323, 3.44986, 1.904691], "children" : [
+        { "type" : "mesh", "file" : "./json/space-station/MainSection_geoShape.json" }
+      ]},
+      { "type" : "node", "name" : "glass_geo", "translate" : [-2.293179, 4.151841, -1.912069], "scale" : [1, 1, 1], "rotatePivot" : [2.287702, -1.80906, -4.717457], "scalePivot" : [2.287702, -1.80906, -4.717457], "children" : [
+        { "type" : "mesh", "file" : "./json/space-station/glass_geoShape.json" }
+      ]},
+      { "type" : "node", "name" : "Self_Illuminated_surfaces_grp", "translate" : [0, 0, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "node", "name" : "particlePillars_grp", "translate" : [0, 0, 0], "scale" : [1, 1, 1], "children" : [
+          { "type" : "node", "name" : "particleBeam_r_geo", "translate" : [-2.293179, 4.151841, -1.912069], "scale" : [1, 1, 1], "rotatePivot" : [2.287702, -1.80906, -4.717457], "scalePivot" : [2.287702, -1.80906, -4.717457], "children" : [
+            { "type" : "mesh", "file" : "./json/space-station/particleBeam_r_geoShape.json" }
+          ]},
+          { "type" : "node", "name" : "particleBeam_l_geo", "translate" : [-2.293179, 4.151841, -1.912069], "scale" : [1, 1, 1], "rotatePivot" : [-0.7122977, -2.473878, 1.908223], "scalePivot" : [-0.7122977, -2.473878, 1.908223], "children" : [
+            { "type" : "mesh", "file" : "./json/space-station/particleBeam_l_geoShape.json" }
+          ]}
+        ]},
+        { "type" : "node", "name" : "monitors_geo", "translate" : [-2.293179, 4.151841, -1.912069], "scale" : [1, 1, 1], "rotatePivot" : [2.281099, -3.014077, 0.2091175], "scalePivot" : [2.281099, -3.014077, 0.2091175], "children" : [
+          { "type" : "mesh", "file" : "./json/space-station/monitors_geoShape.json" }
+        ]},
+        { "type" : "node", "name" : "LightsWalkway_geo", "translate" : [-2.293179, 4.151841, -1.912069], "scale" : [1, 1, 1], "rotatePivot" : [1.460896, -4.147133, 16.63245], "scalePivot" : [1.460896, -4.147133, 16.63245], "children" : [
+          { "type" : "mesh", "file" : "./json/space-station/LightsWalkway_geoShape.json" }
+        ]},
+        { "type" : "node", "name" : "LightsPlatform_geo", "translate" : [-2.293179, 4.151841, -1.912069], "scale" : [1, 1, 1], "rotatePivot" : [2.282358, -4.318928, 1.764573], "scalePivot" : [2.282358, -4.318928, 1.764573], "children" : [
+          { "type" : "mesh", "file" : "./json/space-station/LightsPlatform_geoShape.json" }
+        ]}
+      ]}
+    ]},
+    { "type" : "node", "name" : "lights", "translate" : [0, 0, 0], "scale" : [1, 1, 1], "children" : [
+      { "type" : "node", "name" : "leftPillarPointLight", "translate" : [-2.983903, 1.658036, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "light", "subtype" : "point", "color" : [0.6055363, 0.699341, 0.8823529], "constant_attenuation" : 0.0, "linear_attenuation" : 1.0, "quadratic_attenuation" : 0.0 }
+      ]},
+      { "type" : "node", "name" : "rightPillarPointLight", "translate" : [3.025235, 1.658036, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "light", "subtype" : "point", "color" : [0.6282199, 0.7024043, 0.8431373], "constant_attenuation" : 0.0, "linear_attenuation" : 1.0, "quadratic_attenuation" : 0.0 }
+      ]},
+      { "type" : "node", "name" : "bottomPointLight", "translate" : [0, -7.648225, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "light", "subtype" : "point", "color" : [1, 0.3845068, 0], "constant_attenuation" : 0.0, "linear_attenuation" : 1.0, "quadratic_attenuation" : 0.0 }
+      ]},
+      { "type" : "node", "name" : "spotLight1", "translate" : [0, 6.520953, 2.022932], "rotate" : [-797.4999, 0, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "light", "subtype" : "spot", "color" : [1, 1, 1], "constant_attenuation" : 0.0, "linear_attenuation" : 1.0, "quadratic_attenuation" : 0.0, "falloff_angle" : 40.0, "falloff_exponent" : 1.0 }
+      ]},
+      { "type" : "node", "name" : "spotLight2", "translate" : [0, 6.326943, 8.058494], "rotate" : [-1516.961, 0, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "light", "subtype" : "spot", "color" : [1, 1, 1], "constant_attenuation" : 0.0, "linear_attenuation" : 1.0, "quadratic_attenuation" : 0.0, "falloff_angle" : 40.0, "falloff_exponent" : 1.0 }
+      ]},
+      { "type" : "node", "name" : "spotLight3", "translate" : [0, 5.615519, 11.27815], "rotate" : [-85.44196, 0, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "light", "subtype" : "spot", "color" : [1, 1, 1], "constant_attenuation" : 0.0, "linear_attenuation" : 1.0, "quadratic_attenuation" : 0.0, "falloff_angle" : 40.0, "falloff_exponent" : 1.0 }
+      ]}
+    ]},
+    { "type" : "node", "name" : "cameras", "translate" : [0, 0, 0], "scale" : [1, 1, 1], "children" : [
+      { "type" : "node", "name" : "camera1", "translate" : [-0.02355225, 1.527128, 2.110149], "rotate" : [-4.538353, 360.6, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "camera", "subtype" : "perspective", "yfov" : 37.84928, "znear" : 0.1, "zfar" : 10000.0 }
+      ]},
+      { "type" : "node", "name" : "camera2", "translate" : [0.0599757, 4.442483, -6.183795], "rotate" : [-31.53835, 180.6, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "camera", "subtype" : "perspective", "yfov" : 37.84928, "znear" : 0.1, "zfar" : 10000.0 }
+      ]},
+      { "type" : "node", "name" : "camera3", "translate" : [-0.2942395, 1.268122, 20.5544], "rotate" : [-4.538353, 1.8, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "camera", "subtype" : "perspective", "yfov" : 37.84928, "znear" : 0.1, "zfar" : 10000.0 }
+      ]},
+      { "type" : "node", "name" : "camera4", "translate" : [-3.214108, 1.586023, 13.62035], "rotate" : [-10.53835, -58.2, 0], "scale" : [1, 1, 1], "children" : [
+        { "type" : "camera", "subtype" : "perspective", "yfov" : 37.84928, "znear" : 0.1, "zfar" : 10000.0 }
+      ]}
+    ]}
+  ]
+}
