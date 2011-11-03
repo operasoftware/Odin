@@ -2,10 +2,10 @@
   "name" : "lambert4-fx",
   "skinned" : false,
   "type" : "lambert",
-  "ambient" : "textures/monitorDisplay2.png",
+  "ambient" : "textures/monitorDisplay2.jpg",
   "ambient_uv" : 1,
   "diffuse" : [0,0,0,1],
-  "emission" : "textures/monitorDisplay2.png",
+  "emission" : "textures/monitorDisplay2.jpg",
   "emission_uv" : 0,
   "shininess" : [10]
 }

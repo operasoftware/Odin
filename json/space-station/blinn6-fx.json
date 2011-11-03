@@ -3,11 +3,11 @@
   "skinned" : false,
   "type" : "phong",
   "ambient" : [0,0,0,1],
-  "diffuse" : "textures/MetalTile2.png",
+  "diffuse" : "textures/MetalTile2.jpg",
   "diffuse_uv" : 1,
-  "emission" : "textures/main_lightmap.png",
+  "emission" : "textures/main_lightmap.jpg",
   "emission_uv" : 0,
   "shininess" : [10],
-  "specular" : "textures/MetalTile2_S.png",
+  "specular" : "textures/MetalTile2_S.jpg",
   "specular_uv" : 2
 }

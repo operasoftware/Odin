@@ -3,7 +3,7 @@
   "skinned" : false,
   "type" : "lambert",
   "ambient" : [1,1,1,1],
-  "diffuse" : "textures/red_light.png",
+  "diffuse" : "textures/red_light.jpg",
   "diffuse_uv" : 0,
   "emission" : [0,0,0,1],
   "shininess" : [10]

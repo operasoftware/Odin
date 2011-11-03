@@ -3,11 +3,11 @@
   "skinned" : false,
   "type" : "phong",
   "ambient" : [0,0,0,1],
-  "diffuse" : "textures/keyboard.png",
+  "diffuse" : "textures/keyboard.jpg",
   "diffuse_uv" : 1,
-  "emission" : "textures/main_lightmap.png",
+  "emission" : "textures/main_lightmap.jpg",
   "emission_uv" : 0,
   "shininess" : [10],
-  "specular" : "textures/keyboard_S.png",
+  "specular" : "textures/keyboard_S.jpg",
   "specular_uv" : 2
 }

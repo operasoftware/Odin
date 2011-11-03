@@ -3,11 +3,11 @@
   "skinned" : false,
   "type" : "phong",
   "ambient" : [0,0,0,1],
-  "diffuse" : "textures/ConcreteTile.png",
+  "diffuse" : "textures/ConcreteTile.jpg",
   "diffuse_uv" : 1,
-  "emission" : "textures/walls_lightmap.png",
+  "emission" : "textures/walls_lightmap.jpg",
   "emission_uv" : 0,
   "shininess" : [10],
-  "specular" : "textures/ConcreteTile_S.png",
+  "specular" : "textures/ConcreteTile_S.jpg",
   "specular_uv" : 2
 }

@@ -3,7 +3,7 @@
   "skinned" : false,
   "type" : "phong",
   "ambient" : [0,0,0,1],
-  "diffuse" : "textures/plasma.png",
+  "diffuse" : "textures/plasma.jpg",
   "diffuse_uv" : 0,
   "emission" : [0.451,0.451,0.451,1],
   "shininess" : [10],

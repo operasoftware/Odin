@@ -3,13 +3,13 @@
   "skinned" : true,
   "type" : "phong",
   "ambient" : [0.0,0.0,0.0,1],
-  "bump" : "textures/N_1024.png",
+  "bump" : "textures/N_1024.jpg",
   "bump_uv" : 2,
-  "diffuse" : "textures/Color_1024.png",
+  "diffuse" : "textures/Color_1024.jpg",
   "diffuse_uv" : 1,
-  "emission" : "textures/SI%20512.png",
+  "emission" : "textures/SI%20512.jpg",
   "emission_uv" : 0,
   "shininess" : [10],
-  "specular" : "textures/S_1024.png",
+  "specular" : "textures/S_1024.jpg",
   "specular_uv" : 3
 }
