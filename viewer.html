@@ -18,7 +18,7 @@
     <script type="text/javascript" src="js/Scene.js"></script>
     <script type="text/javascript" src="js/Light.js"></script>
     <script type="text/javascript" src="js/Camera.js"></script>
-    <script type="text/javascript" src="js/PostProcess.js"></script>
+    <script type="text/javascript" src="js/GlobalMaterialProperties.js"></script>
 
     <script language="javascript" type="text/javascript">
       var canvas;
@@ -325,6 +325,11 @@
         update();
       }
 
+      function setAmbientLevel(ambient) {
+        globalMaterialProperties.ambient = [ambient, ambient, ambient];
+        update();
+      }
+
       window.addEventListener('resize', resizeGame, false);
       window.addEventListener('orientationchange', resizeGame, false);
       window.addEventListener('mousemove', onMouseMove, false);
@@ -399,6 +404,11 @@
             <input type="checkbox" id="skeleton_visibility" checked="true" onclick="updateVisibility()" style="border:solid 1px black"/> Display Skeleton<br/>
             <input type="checkbox" id="world_visibility" checked="true" onclick="updateVisibility()" style="border:solid 1px black"/> Display World<br/>
           </form>
+          <div>
+            Ambient:
+            <input type="range"  min="0" max="255" value="0" onchange="setAmbientLevel(this.value/256);"/>
+          </div>
+          <br/>
         </div>
         <div id="file-title" style="padding-left:10px; box-sizing:border-box; width: 100%; background-color:black; color:#05a5e0">Files</div>
         <div style="width:100%;box-sizing:border-box;padding-left:10px;padding-right:10px">

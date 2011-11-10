@@ -356,7 +356,15 @@ function MaterialPrototype() {
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
             if (this.type != 'matte' && this.type != 'shadowmap') {
-                gl.uniform3f(this.shaderProgram.ambientColorUniform, this.ambient[0], this.ambient[1], this.ambient[2]);
+                var ambientR = this.ambient[0];
+                var ambientG = this.ambient[1];
+                var ambientB = this.ambient[2];
+                if (globalMaterialProperties.ambient) {
+                    ambientR = Math.max(ambientR, globalMaterialProperties.ambient[0]);
+                    ambientG = Math.max(ambientG, globalMaterialProperties.ambient[1]);
+                    ambientB = Math.max(ambientB, globalMaterialProperties.ambient[2]);
+                }
+                gl.uniform3f(this.shaderProgram.ambientColorUniform, ambientR, ambientG, ambientB);
 
                 if (this.type == 'phong') {
                     var camPos = viewMatrix().copy().invertRigidBody();
