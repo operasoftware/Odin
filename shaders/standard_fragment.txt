@@ -25,7 +25,7 @@ uniform int uLightType;  // 0 = point, 1 = spot, 2 = directional
 uniform mat4 uLightViewMatrix;
 
 void main(void) {
-    float lightLen;
+    /*float lightLen;
     if (uLightType == 2) {
         vec4 lightDir = uLightViewMatrix * vPosition;
         lightLen = -lightDir.z/uLightLocation.w;
@@ -34,7 +34,8 @@ void main(void) {
         lightLen = length(lightDir)/uLightLocation.w;
     }
     vec4 pack = vec4(1.0, 256.0, 65536.0, 16777216.0);
-    gl_FragColor = pack*lightLen;
+    gl_FragColor = pack*lightLen;*/
+	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }
 #else
 
@@ -150,8 +151,8 @@ void main(void) {
 #endif
         if (uLightType[l] != 0) {
             vec4 lsPos = uLightVPMatrix[l] * vPosition;
-            if (lsPos.z < 0.0)
-                continue;
+            //if (lsPos.z < 0.0)
+                //continue;
             lightTextureCoord = (lsPos.xy/lsPos.w)*0.5+vec2(0.5);
 #ifdef SHADOWED
             if (uCastsShadows[l] != 0) {

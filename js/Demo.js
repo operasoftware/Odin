@@ -252,7 +252,7 @@ var demo = new (function () {
         window.canvas = document.getElementById('webgl');
         var gl = canvas.getContext('webgl', { 'alpha' : false }) || canvas.getContext('experimental-webgl', { 'alpha' : false });
         if (!gl) {  
-            alert("Unable to initialize WebGL.");  
+            alert('Unable to initialize WebGL.');
             return false;
         }
         // The gl variable is used by other scripts
@@ -264,7 +264,7 @@ var demo = new (function () {
         window.addEventListener('keydown', function(e) { that.handleKeyDown(e); }, false);
         window.addEventListener('keyup', function(e) { that.handleKeyUp(e); }, false);
 
-        gl.getExtension("OES_standard_derivatives");
+        gl.getExtension('OES_standard_derivatives');
         gl.clearDepth(1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);

@@ -109,7 +109,7 @@ function doPreprocess(txt, defined) {
 		}
 	}
 	// Build the outdata by iterating over the lines.
-	var res = "";
+	var res = '';
 	var currentDir = 0;
 	for (var j = 0; j < lines.length; ++j) {
 		// Update the current currentDirective.

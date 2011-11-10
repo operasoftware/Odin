@@ -15,8 +15,8 @@
 		</comments>
       <source_data>file:///C:/Users/emoller/Documents/public_html/webgldemo/assets/maya/space-station-erik-late.ma</source_data>
     </contributor>
-    <created>2011-11-01T21:19:47</created>
-    <modified>2011-11-01T21:19:47</modified>
+    <created>2011-11-09T17:59:03</created>
+    <modified>2011-11-09T17:59:03</modified>
     <unit name="centimeter" meter="0.01"/>
     <up_axis>Y_UP</up_axis>
   </asset>
@@ -1676,32 +1676,8 @@
             <reflectivity>
               <float>0.5</float>
             </reflectivity>
-            <transparent opaque="A_ONE">
-              <texture texture="file5-sampler" texcoord="TEX1">
-                <extra>
-                  <technique profile="OpenCOLLADAMaya">
-                    <blend_mode>NONE</blend_mode>
-                    <coverageU>1</coverageU>
-                    <coverageV>1</coverageV>
-                    <fast>0</fast>
-                    <mirrorU>0</mirrorU>
-                    <mirrorV>0</mirrorV>
-                    <noiseU>0</noiseU>
-                    <noiseV>0</noiseV>
-                    <offsetU>0</offsetU>
-                    <offsetV>0</offsetV>
-                    <repeatU>1</repeatU>
-                    <repeatV>1</repeatV>
-                    <rotateFrame>0</rotateFrame>
-                    <rotateUV>0</rotateUV>
-                    <stagger>0</stagger>
-                    <translateFrameU>0</translateFrameU>
-                    <translateFrameV>0</translateFrameV>
-                    <wrapU>1</wrapU>
-                    <wrapV>1</wrapV>
-                  </technique>
-                </extra>
-              </texture>
+            <transparent opaque="RGB_ZERO">
+              <color>0 0 0 1</color>
             </transparent>
             <transparency>
               <float>1</float>
@@ -1758,20 +1734,20 @@
     </effect>
     <effect id="lambert3-fx">
       <profile_COMMON>
-        <newparam sid="file5_2-surface">
+        <newparam sid="file5_1-surface">
           <surface type="2D">
-            <init_from>file5_2</init_from>
+            <init_from>file5_1</init_from>
           </surface>
         </newparam>
-        <newparam sid="file5_2-sampler">
+        <newparam sid="file5_1-sampler">
           <sampler2D>
-            <source>file5_2-surface</source>
+            <source>file5_1-surface</source>
           </sampler2D>
         </newparam>
         <technique sid="common">
           <lambert>
             <emission>
-              <texture texture="file5_2-sampler" texcoord="TEX0">
+              <texture texture="file5_1-sampler" texcoord="TEX0">
                 <extra>
                   <technique profile="OpenCOLLADAMaya">
                     <blend_mode>NONE</blend_mode>
@@ -1798,31 +1774,7 @@
               </texture>
             </emission>
             <ambient>
-              <texture texture="file5_2-sampler" texcoord="TEX1">
-                <extra>
-                  <technique profile="OpenCOLLADAMaya">
-                    <blend_mode>NONE</blend_mode>
-                    <coverageU>1</coverageU>
-                    <coverageV>1</coverageV>
-                    <fast>0</fast>
-                    <mirrorU>0</mirrorU>
-                    <mirrorV>0</mirrorV>
-                    <noiseU>0</noiseU>
-                    <noiseV>0</noiseV>
-                    <offsetU>0</offsetU>
-                    <offsetV>0</offsetV>
-                    <repeatU>1</repeatU>
-                    <repeatV>1</repeatV>
-                    <rotateFrame>0</rotateFrame>
-                    <rotateUV>0</rotateUV>
-                    <stagger>0</stagger>
-                    <translateFrameU>0</translateFrameU>
-                    <translateFrameV>0</translateFrameV>
-                    <wrapU>1</wrapU>
-                    <wrapV>1</wrapV>
-                  </technique>
-                </extra>
-              </texture>
+              <color>0 0 0 1</color>
             </ambient>
             <diffuse>
               <color>0 0 0 1</color>
@@ -1879,31 +1831,7 @@
               </texture>
             </emission>
             <ambient>
-              <texture texture="file7-sampler" texcoord="TEX1">
-                <extra>
-                  <technique profile="OpenCOLLADAMaya">
-                    <blend_mode>NONE</blend_mode>
-                    <coverageU>1</coverageU>
-                    <coverageV>1</coverageV>
-                    <fast>0</fast>
-                    <mirrorU>0</mirrorU>
-                    <mirrorV>0</mirrorV>
-                    <noiseU>0</noiseU>
-                    <noiseV>0</noiseV>
-                    <offsetU>0</offsetU>
-                    <offsetV>0</offsetV>
-                    <repeatU>1</repeatU>
-                    <repeatV>1</repeatV>
-                    <rotateFrame>0</rotateFrame>
-                    <rotateUV>0</rotateUV>
-                    <stagger>0</stagger>
-                    <translateFrameU>0</translateFrameU>
-                    <translateFrameV>0</translateFrameV>
-                    <wrapU>1</wrapU>
-                    <wrapV>1</wrapV>
-                  </technique>
-                </extra>
-              </texture>
+              <color>0 0 0 1</color>
             </ambient>
             <diffuse>
               <color>0 0 0 1</color>
@@ -2663,7 +2591,7 @@
         </technique>
       </extra>
     </image>
-    <image id="file5_2" name="file5">
+    <image id="file5_1" name="file5">
       <init_from>file:///C:/Users/emoller/Documents/public_html/webgldemo/assets/maya/textures/monitorDisplay3.png</init_from>
       <extra>
         <technique profile="OpenCOLLADAMaya">
@@ -3426,7 +3354,6 @@
                   <technique_common>
                     <instance_material symbol="blinn4SG" target="#customPillar">
                       <bind_vertex_input semantic="TEX0" input_semantic="TEXCOORD" input_set="0"/>
-                      <bind_vertex_input semantic="TEX1" input_semantic="TEXCOORD" input_set="0"/>
                     </instance_material>
                   </technique_common>
                 </bind_material>
@@ -3449,7 +3376,6 @@
                   <technique_common>
                     <instance_material symbol="blinn4SG" target="#customPillar">
                       <bind_vertex_input semantic="TEX0" input_semantic="TEXCOORD" input_set="0"/>
-                      <bind_vertex_input semantic="TEX1" input_semantic="TEXCOORD" input_set="0"/>
                     </instance_material>
                   </technique_common>
                 </bind_material>
@@ -3478,11 +3404,9 @@
                 <technique_common>
                   <instance_material symbol="lambert3SG" target="#lambert3">
                     <bind_vertex_input semantic="TEX0" input_semantic="TEXCOORD" input_set="0"/>
-                    <bind_vertex_input semantic="TEX1" input_semantic="TEXCOORD" input_set="0"/>
                   </instance_material>
                   <instance_material symbol="lambert4SG" target="#lambert4">
                     <bind_vertex_input semantic="TEX0" input_semantic="TEXCOORD" input_set="0"/>
-                    <bind_vertex_input semantic="TEX1" input_semantic="TEXCOORD" input_set="0"/>
                   </instance_material>
                 </technique_common>
               </bind_material>

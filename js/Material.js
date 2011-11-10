@@ -404,32 +404,34 @@ function MaterialPrototype() {
                 }
 
                 gl.uniform1i(this.shaderProgram.numLightsUniform, numLights);
-                gl.uniform1iv(this.shaderProgram.lightTypeUniform, lightType);
-                gl.uniform4fv(this.shaderProgram.lightLocationUniform, lightLocation);
-                gl.uniformMatrix4fv(this.shaderProgram.lightViewMatixUniform, false, flatten(lightViewMatix));
-                gl.uniformMatrix4fv(this.shaderProgram.lightVPMatrixUniform, false, flatten(lightVPMatrix));
-                gl.uniform3fv(this.shaderProgram.lightDiffuseColorUniform, lightDiffuseColor);
-                if (this.type == 'phong')
-                    gl.uniform3fv(this.shaderProgram.lightSpecularColorUniform, lightSpecularColor);
+                if (numLights > 0) {
+                    gl.uniform1iv(this.shaderProgram.lightTypeUniform, lightType);
+                    gl.uniform4fv(this.shaderProgram.lightLocationUniform, lightLocation);
+                    gl.uniformMatrix4fv(this.shaderProgram.lightViewMatixUniform, false, flatten(lightViewMatix));
+                    gl.uniformMatrix4fv(this.shaderProgram.lightVPMatrixUniform, false, flatten(lightVPMatrix));
+                    gl.uniform3fv(this.shaderProgram.lightDiffuseColorUniform, lightDiffuseColor);
+                    if (this.type == 'phong')
+                        gl.uniform3fv(this.shaderProgram.lightSpecularColorUniform, lightSpecularColor);
 
-                if (this.shadowReceiver) {
-                    gl.uniform1iv(this.shaderProgram.castsShadowsUniform, lightCastsShadows);
-                    gl.uniform1iv(this.shaderProgram.shadowSamplerUniform, lightShadowSampler);
-                    for (var l = 0; l < numLights; ++l) {
-                        if (lights[l].castsShadows) {
-                            gl.activeTexture(gl.TEXTURE7 + l);
-                            gl.bindTexture(gl.TEXTURE_2D, lights[l].shadowTexture);
+                    if (this.shadowReceiver) {
+                        gl.uniform1iv(this.shaderProgram.castsShadowsUniform, lightCastsShadows);
+                        gl.uniform1iv(this.shaderProgram.shadowSamplerUniform, lightShadowSampler);
+                        for (var l = 0; l < numLights; ++l) {
+                            if (lights[l].castsShadows) {
+                                gl.activeTexture(gl.TEXTURE7 + l);
+                                gl.bindTexture(gl.TEXTURE_2D, lights[l].shadowTexture);
+                            }
                         }
                     }
-                }
 
-            } else if (this.type == 'shadowmap') {
-                var light = lights[0]; // HACKERY...
-                var lightPos = light.getAccumulatedTransform();
-                gl.uniform4f(this.shaderProgram.lightLocationUniform, lightPos.t0, lightPos.t1, lightPos.t2, light.radius);
-                gl.uniform1i(this.shaderProgram.lightTypeUniform, light.getType());
-                if (light.subtype=='directional')
-                    gl.uniformMatrix4fv(this.shaderProgram.lightViewMatixUniform, false, lightPos.flatten());
+                } else if (this.type == 'shadowmap') {
+                    var light = lights[0]; // HACKERY...
+                    var lightPos = light.getAccumulatedTransform();
+                    gl.uniform4f(this.shaderProgram.lightLocationUniform, lightPos.t0, lightPos.t1, lightPos.t2, light.radius);
+                    gl.uniform1i(this.shaderProgram.lightTypeUniform, light.getType());
+                    if (light.subtype=='directional')
+                        gl.uniformMatrix4fv(this.shaderProgram.lightViewMatixUniform, false, lightPos.flatten());
+                }
             }
 
             if (this.hasTexture()) {

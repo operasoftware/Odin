@@ -1,7 +1,7 @@
 /* ex: set tabstop=4 expandtab: */
 function Scene(jsonfile, callback, aspect, shadowCasters, shadowReceivers) {
     if (!aspect)
-      throw new Error("Zero aspect is not valid.");
+      throw new Error('Zero aspect is not valid.');
     this.loadingDone = callback;
     this.loader = new Loader(callback);
     var thisObj = this;
@@ -47,7 +47,7 @@ function ScenePrototype() {
         } catch (e) {
             if (allowXMLRetry) {
                 var parser=new DOMParser();
-                var xmlDoc=parser.parseFromString(txt,"text/xml");
+                var xmlDoc=parser.parseFromString(txt,'text/xml');
                 var jsonString = collada2JSON(xmlDoc);
                 alert(jsonString);
                 this.initFromJSON(jsonString, false);
@@ -72,21 +72,21 @@ function ScenePrototype() {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
         this.vshader = gl.createShader(gl.VERTEX_SHADER);
-        gl.shaderSource(this.vshader, "attribute vec2 vpos;attribute vec2 texc;varying vec2 uv;\nuniform vec4 rect;\nvoid main() {\nuv = texc;\ngl_Position = vec4(rect.xy + vpos * rect.zw,0,1);\n}");
+        gl.shaderSource(this.vshader, 'attribute vec2 vpos;attribute vec2 texc;varying vec2 uv;\nuniform vec4 rect;\nvoid main() {\nuv = texc;\ngl_Position = vec4(rect.xy + vpos * rect.zw,0,1);\n}');
         gl.compileShader(this.vshader);
 
         this.fshader = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(this.fshader, "precision highp float;\nvarying vec2 uv;\nuniform sampler2D tex;\nvoid main() {\ngl_FragColor = texture2D(tex, uv);\n}");
+        gl.shaderSource(this.fshader, 'precision highp float;\nvarying vec2 uv;\nuniform sampler2D tex;\nvoid main() {\ngl_FragColor = texture2D(tex, uv);\n}');
         gl.compileShader(this.fshader);
 
         this.program = gl.createProgram();
         gl.attachShader(this.program, this.vshader);
         gl.attachShader(this.program, this.fshader);
         gl.linkProgram(this.program);
-        this.program.vpos = gl.getAttribLocation(this.program, "vpos");
-        this.program.dim = gl.getAttribLocation(this.program, "texc");
-        this.program.rect = gl.getUniformLocation(this.program, "rect");
-        this.program.tex = gl.getUniformLocation(this.program, "tex");
+        this.program.vpos = gl.getAttribLocation(this.program, 'vpos');
+        this.program.dim = gl.getAttribLocation(this.program, 'texc');
+        this.program.rect = gl.getUniformLocation(this.program, 'rect');
+        this.program.tex = gl.getUniformLocation(this.program, 'tex');
         // DEBUG
 
         //this.postProcess = new PostProcess();
@@ -123,7 +123,7 @@ function ScenePrototype() {
     this.culled = function(light) {
         /*if (this.bound && light && light.subtype == 'spot') {
             var lt = light.getAccumulatedTransform();
-            var cone = { "vertex" : Vec3().make(lt.t0, lt.t1, lt.t2), "axis" : Vec3().make(-lt.z0, -lt.z1, -lt.z2), "angle" : Math.PI * (light.falloff_angle / 2) / 180 };
+            var cone = { 'vertex' : Vec3().make(lt.t0, lt.t1, lt.t2), 'axis' : Vec3().make(-lt.z0, -lt.z1, -lt.z2), 'angle' : Math.PI * (light.falloff_angle / 2) / 180 };
             return !sphereIntersectsCone(this.bound, cone); 
         }*/
         return false;
@@ -190,7 +190,7 @@ function ScenePrototype() {
         for (var l = 0; l < this.lights.length; ++l) {
             /*var drawShadows = true;
             var light = this.lights[l];
-            if (light.subtype != "point") {
+            if (light.subtype != 'point') {
                 if (this.allSubScenesCulled(light))
                     if (light.isRenderedWithoutSubScenes)
                         drawShadows = false;
@@ -208,7 +208,7 @@ function ScenePrototype() {
             }*/
             var light = this.lights[l];
             light.castsShadows = false;
-            if (light.subtype == "spot") {
+            if (light.subtype == 'spot') {
                 updateLights.push(light);
                 light.castsShadows = true;
             }
@@ -222,7 +222,7 @@ function ScenePrototype() {
             updateLights.sort(function(a, b){return a.lastUpdateFrame - b.lastUpdateFrame});
         }*/
 
-        //alert(lightsToUpdate + "/" + this.lights.length);
+        //alert(lightsToUpdate + '/'' + this.lights.length);
         // Update shadow maps for all the selected lights
         if (lightsToUpdate > 0) {
             //gl.blendFunc(gl.ONE, gl.ZERO);
@@ -292,14 +292,14 @@ function ScenePrototype() {
     }
 
     this.getRootJoint = function() {
-        var joints = this.findNodesByType("joint");
+        var joints = this.findNodesByType('joint');
         if (joints.length)
             return joints[0];
         return null;
     }
 
     this.getFirstMesh = function() {
-        var meshes = this.findNodesByType("mesh");
+        var meshes = this.findNodesByType('mesh');
         if (meshes.length)
             return meshes[0];
         return null;
@@ -315,7 +315,7 @@ function ScenePrototype() {
     }
 
     this.nextCamera = function() {
-        var cameras = this.findNodesByType("camera");
+        var cameras = this.findNodesByType('camera');
         if (cameras.length) {
             if (!this.currentCamera)
                 this.currentCamera = cameras[0];
@@ -376,7 +376,7 @@ function ScenePrototype() {
                 }
             }
         }
-        request.open("GET", anim, true);
+        request.open('GET', anim, true);
     }
 
     this.setAnimation = function(newAnim, time, fadeoutTime) {
@@ -405,9 +405,9 @@ function ScenePrototype() {
             // Tick fade time
             this.animation.fadeTime += dt;
 
-            var textNode = document.getElementById("text");
+            var textNode = document.getElementById('text');
             if (textNode)
-              textNode.innerHTML = "Animation time: " + this.animation.time.toFixed(3);
+              textNode.innerHTML = 'Animation time: ' + this.animation.time.toFixed(3);
 
             for (var n = 0; n < this.json.nodes.length; ++n)
                 this.json.nodes[n].update(this, I4x3());
