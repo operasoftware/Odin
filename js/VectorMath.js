@@ -62,7 +62,7 @@ function Vector3Prototype() {
     }
 
     this.toString = function() {
-        return "["+this.x+","+this.y+","+this.z+"]";
+        return '['+this.x+','+this.y+','+this.z+']';
     }
 
     this.copy = function() {
@@ -242,9 +242,9 @@ function Matrix4x3Prototype() {
     }
 
     this.toString = function() {
-        return "["+this.x0+","+this.y0+","+this.z0+","+this.t0+"]\n"+
-            "["+this.x1+","+this.y1+","+this.z1+","+this.t1+"]\n"+
-            "["+this.x2+","+this.y2+","+this.z2+","+this.t2+"]";
+        return '['+this.x0+','+this.y0+','+this.z0+','+this.t0+']\n'+
+            '['+this.x1+','+this.y1+','+this.z1+','+this.t1+']\n'+
+            '['+this.x2+','+this.y2+','+this.z2+','+this.t2+']';
     }
 
     this.copy = function() {
@@ -341,10 +341,10 @@ function Matrix4x4() {
 function Matrix4x4Prototype() {
 
     this.toString = function() {
-        return "["+this.x0+","+this.y0+","+this.z0+","+this.t0+"]\n"+
-        "["+this.x1+","+this.y1+","+this.z1+","+this.t1+"]\n"+
-        "["+this.x2+","+this.y2+","+this.z2+","+this.t2+"]\n"+
-        "["+this.x3+","+this.y3+","+this.z3+","+this.t3+"]";
+        return '['+this.x0+','+this.y0+','+this.z0+','+this.t0+']\n'+
+        '['+this.x1+','+this.y1+','+this.z1+','+this.t1+']\n'+
+        '['+this.x2+','+this.y2+','+this.z2+','+this.t2+']\n'+
+        '['+this.x3+','+this.y3+','+this.z3+','+this.t3+']';
     }
 
     this.copy = function() {
@@ -518,7 +518,7 @@ function GLMatrixState() {
 
     this.popModelMatrix = function() {
         if (this.modelMatrixStack.length == 0)
-            throw "ModelMatrix stack is empty";
+            throw 'ModelMatrix stack is empty';
         this.modelMatrix = this.modelMatrixStack.pop();
         return this.modelMatrix;
     }

@@ -26,10 +26,17 @@ function CameraPrototype() {
         viewMatrix().make(this.getAccumulatedTransform()).invertRigidBody();
         if (this.subtype == 'perspective') {
           projectionMatrix().makePerspective(this.yfov, this.aspect, this.znear, this.zfar);
-        }
-        else if (this.subtype == 'orthographic') {
+        } else if (this.subtype == 'orthographic') {
           projectionMatrix().makeOrtho(-this.xmag, this.xmag, -this.ymag, this.ymag, this.znear, this.zfar);
         }
+    }
+
+    this.drawSkeleton = function(dbgDraw, frames) {
+          /*var alen = 0.3
+          dbgDraw.drawLine(0,0,-alen, -alen,-alen,alen, dbgDraw.RED,frames, 1);
+          dbgDraw.drawLine(0,0,-alen, -alen, alen,alen, dbgDraw.RED,frames, 1);
+          dbgDraw.drawLine(0,0,-alen,  alen,-alen,alen, dbgDraw.RED,frames, 1);
+          dbgDraw.drawLine(0,0,-alen,  alen, alen,alen, dbgDraw.RED,frames, 1);*/
     }
 };
 

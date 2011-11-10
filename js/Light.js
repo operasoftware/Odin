@@ -88,15 +88,13 @@ function LightPrototype() {
         }
     }
 
-    this.draw = function(jointMatrices, lights) {
-/*
-        if (this.subtype == "point") {
+    this.drawSkeleton = function(dbgDraw, frames) {
+        if (this.subtype == 'point') {
           var alen = 0.3
           dbgDraw.drawLine(-alen,0,0, alen,0,0, dbgDraw.RED,frames, 1);
           dbgDraw.drawLine(0,-alen,0, 0,alen,0, dbgDraw.RED,frames, 1);
           dbgDraw.drawLine(0,0,-alen, 0,0,alen, dbgDraw.RED,frames, 1);
         }
-*/
     }
 }
 

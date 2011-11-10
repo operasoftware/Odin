@@ -29,7 +29,7 @@ function MeshPrototype() {
                     thisObj.loadingDone.call();
             }
         }
-        request.open("GET", file, true);
+        request.open('GET', file, true);
     }
 
     this.handleMeshLoaded = function (txt) {
@@ -47,8 +47,8 @@ function MeshPrototype() {
         }
         if (this.shadowCaster) {
             this.outstandingRequests += 2;
-            this.shadowGenMaterial = materialCache.loadMaterial("shadowgen", function() { thisObj.handleMaterialLoaded(mat); });
-            this.shadowGenSkinnedMaterial = materialCache.loadMaterial("shadowgenskinned", function() { thisObj.handleMaterialLoaded(mat); });
+            this.shadowGenMaterial = materialCache.loadMaterial('shadowgen', function() { thisObj.handleMaterialLoaded(mat); });
+            this.shadowGenSkinnedMaterial = materialCache.loadMaterial('shadowgenskinned', function() { thisObj.handleMaterialLoaded(mat); });
         }
     }
 
@@ -69,7 +69,7 @@ function MeshPrototype() {
             var mat = this.materials[m];
             this.needsTexCoord |= mat.hasTexture(); 
             this.needsEmissiveTexCoord |= mat.hasEmissiveTex;
-            this.needsNormals |= (mat.type != "matte");
+            this.needsNormals |= (mat.type != 'matte' && mat.type != 'custom' && mat.type != 'shadowmap');
         }
 
         if (this.needsNormals) {
@@ -221,7 +221,7 @@ function MeshPrototype() {
                 end = this.materialStarts[m + 1];
 
             /*if (lights.length < 1) {
-                alert("Doing ambient pass!");
+                alert('Doing ambient pass!'');
 
                 if (mat.skinned)
                     mat = this.ambientSkinnedMaterial;
@@ -234,7 +234,7 @@ function MeshPrototype() {
             gl.bindBuffer(gl.ARRAY_BUFFER, this.mVertexPositionBuffer);
             gl.vertexAttribPointer(mat.shaderProgram.vertexPositionAttribute, this.mVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            if (mat.type != "matte") {
+            if (mat.type != 'matte' && mat.type != 'custom' && mat.type != 'shadowmap') {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.mVertexNormalBuffer);
                 gl.vertexAttribPointer(mat.shaderProgram.vertexNormalAttribute, this.mVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
             }
