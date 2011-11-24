@@ -133,7 +133,7 @@ void main(void) {
     // Iterate light sources
     float lightDist, attenuation, diffuseLightWeighting;
     vec2 lightTextureCoord;
-    vec3 lightLength, lightDirection, lightContrib, diffuse;
+    vec3 lightLength, lightDirection, lightContrib;
     vec4 lsPos;
 #ifdef PHONG
     vec3 specular, viewDirection, reflectionDirection;
@@ -199,9 +199,7 @@ void main(void) {
             lightContrib = vec3(attenuation);
             if (uLightType[l] == 1)
                 lightContrib *= texture2D(uLightConeSampler, lightTextureCoord).rgb;
-
-            diffuse = uLightDiffuseColor[l] * diffuseLightWeighting;
-            diffuseContrib += diffuse * lightContrib;
+            diffuseContrib += uLightDiffuseColor[l] * lightContrib * diffuseLightWeighting;
 
 #ifdef PHONG
 #ifdef SPECULAR_TEXTURE
