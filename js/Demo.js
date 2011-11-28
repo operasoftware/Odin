@@ -184,7 +184,7 @@ var demo = new (function () {
         this.m_canvasTime += dt;
 
         if (this.m_canvasTime < 6.0) {
-            
+
         } else if (this.m_canvasTime < 6.666) {
             if (!this.m_turnAnimActive) {
                 // Switch to turn animation
@@ -198,7 +198,7 @@ var demo = new (function () {
             var turnAngle = -1 * (45 / this.m_character.turnAnim.maxTime) * dt;
 
             // Update rotation based on character turning
-            this.m_charRoot.rotate = [0, this.m_charRoot.rotate[1] + turnAngle, 0];            
+            this.m_charRoot.rotate = [0, this.m_charRoot.rotate[1] + turnAngle, 0];
 
         } else if (!this.m_walkDone) {
             this.moveCharacter(dt, true, false, false, this.m_canvasTime < 4.0);
@@ -206,7 +206,7 @@ var demo = new (function () {
                 this.m_walkDone = true;
             }
         } else {
-            this.moveCharacter(dt, this.m_upKey, this.m_downKey, this.m_leftKey, this.m_rightKey);            
+            this.moveCharacter(dt, this.m_upKey, this.m_downKey, this.m_leftKey, this.m_rightKey);
         }
 
 
@@ -246,12 +246,12 @@ var demo = new (function () {
             this.m_scene.draw();
         }
     }
-      
+
     this.init = function() {
         // Get the WebGL context
         window.canvas = document.getElementById('webgl');
         var gl = canvas.getContext('webgl', { 'alpha' : false }) || canvas.getContext('experimental-webgl', { 'alpha' : false });
-        if (!gl) {  
+        if (!gl) {
             alert('Unable to initialize WebGL.');
             return false;
         }

@@ -2,7 +2,9 @@
   <head>
     <title>COLLADA WebGL viewer</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu:700' rel='stylesheet' type='text/css'>
+    <link href='images.css' rel='stylesheet' type='text/css'>
+    <link href='viewer.css' rel='stylesheet' type='text/css'>
     <script type="text/javascript" src="js/Collada.js"></script>
     <script type="text/javascript" src="js/PreProcess.js"></script>
     <script type="text/javascript" src="js/Loader.js"></script>
@@ -19,6 +21,7 @@
     <script type="text/javascript" src="js/Light.js"></script>
     <script type="text/javascript" src="js/Camera.js"></script>
     <script type="text/javascript" src="js/GlobalMaterialProperties.js"></script>
+    <script type="text/javascript" src="js/ArcBall.js"></script>
 
     <script language="javascript" type="text/javascript">
       var canvas;
@@ -34,10 +37,15 @@
       var toolBar;
       var toolBarWidth;
       var toolBarShowing = true;
+      var pinTools = true;
       var outliner;
       var lastMouseX;
       var lastMouseY;
-      var middleDown = false;
+      var leftDown = false;
+      var zoomSelected = false;
+      var panSelected = false;
+      var trackSelected = false;
+      var arcball = new ArcBall(100,100);
 
       function checkStatusTimeout() {
         if (new Date() - lastStatus >= 3000) {
@@ -64,7 +72,36 @@
         setStatusMessage(msg);
       }
 
+      function updateNavBar() {
+        document.getElementById('zoomButton').className = zoomSelected ? 'zoom-selected' : 'zoom';
+        document.getElementById('panButton').className = panSelected ? 'pan-selected' : 'pan';
+        document.getElementById('trackButton').className = trackSelected ? 'track-selected' : 'track';
+      }
+
+      function toggleZoom() {
+        zoomSelected = !zoomSelected;
+        panSelected = false;
+        trackSelected = false;
+        updateNavBar();
+      }
+
+      function togglePan() {
+        zoomSelected = false;
+        panSelected = !panSelected;
+        trackSelected = false;
+        updateNavBar();
+      }
+
+      function toggleTrack() {
+        zoomSelected = false;
+        panSelected = false;
+        trackSelected = !trackSelected;
+        updateNavBar();
+      }
+
       function showTools(doshow) {
+        if (pinTools && !doshow)
+          return;
         if (!toolBar)
           toolBar = document.getElementById("configview");
         if (toolBar) {
@@ -78,13 +115,21 @@
       }
 
       function outlinerClicked(evt) {
-        var index = Math.floor((evt.clientY - outliner.offsetTop + outliner.scrollTop) / 30);
+        var index = Math.floor((evt.clientY - outliner.offsetTop + outliner.scrollTop) / 32);
         if (outliner.children.length > index) {
           var cameraParent = outliner.children[index].node;
-          scene.currentCamera = cameraParent.children[0];
+          setCurrentCamera(cameraParent.children[0]);
           update();
         }
+      }
 
+      function setCurrentCamera(camera) {
+        for (var j = 0; j < outliner.children.length; ++j)
+          if (outliner.children[j].node == camera.parent)
+            outliner.children[j].firstChild.className = 'camera-selected';
+          else
+            outliner.children[j].firstChild.className = 'camera';
+        scene.currentCamera = camera;
       }
 
       function clearOutliner() {
@@ -103,7 +148,7 @@
         }
         var newdiv = document.createElement('div');
         newdiv.setAttribute('id', node.name);
-        var img = "<img src='images/camera.png' style='vertical-align:middle'></img>";
+        var img = "<div class='camera' style='vertical-align:middle;display:inline-block'></div>";
         newdiv.innerHTML = img + node.name;
         if (outliner.children.length % 2)
           newdiv.style.backgroundColor = "#aaa";
@@ -112,13 +157,18 @@
       }
 
       function onMouseDown(evt) {
-        if (evt.button == 0)
-          middleDown = true;
+        if (evt.button == 0) {
+          leftDown = true;
+          if (trackSelected && scene) {
+            scene.currentCamera.startTrack(evt.clientX, evt.clientY, arcball);
+          }
+        }
       }
 
       function onMouseUp(evt) {
-        if (evt.button == 0)
-          middleDown = false;
+        if (evt.button == 0) {
+          leftDown = false;
+        }
       }
 
       function onMouseMove(evt) {
@@ -130,11 +180,18 @@
         if (toolBarShowing && evt.clientX < toolBarWidth) {
           return;
         }
-        if (middleDown) {
+        if (leftDown) {
           var dx = evt.clientX - lastMouseX;
           var dy = evt.clientY - lastMouseY;
-          scene.currentCamera.parent.zoom(-dx / 100, dy / 100);
-          update();
+          if (scene) {
+            if (zoomSelected)
+              scene.currentCamera.zoom(-dx / 100, dy / 100);
+            else if (panSelected)
+              scene.currentCamera.pan(-dx / 100, dy / 100);
+            else if (trackSelected)
+              scene.currentCamera.track(evt.clientX, evt.clientY, arcball);
+            update();
+          }
         }
         lastMouseX = evt.clientX;
         lastMouseY = evt.clientY;
@@ -154,44 +211,24 @@
         update();
       }
 
-      function loadScene() {
+      function loadSceneFromURL(url) {
         sceneIsLoaded = false;
-        var sceneName = document.getElementById("scene_select").value;
-        if (sceneName != "---") {
-          setStatusMessage("Loading scene.");
-          scene = new Scene(sceneName, function () { sceneLoaded(); }, canvas.width / canvas.height);
+        if (scene) {
+          scene.deinit();
         }
-        var animSelect = document.getElementById("anim_select");
-        for (var m in sceneList.scenes) {
-          if (sceneList.scenes[m].name == sceneName) {
-            animSelect.options.length = 1;
-            for (anim in sceneList.scenes[m].anims) {
-              var newOpt = document.createElement('option');
-              newOpt.text = sceneList.scenes[m].anims[anim];
-              newOpt.value = sceneList.scenes[m].anims[anim];
-              animSelect.add(newOpt, null);
-            }
-            break;
-          }
+        setStatusMessage("Loading scene.");
+        scene = new Scene(url, function () { sceneLoaded(); }, canvas.width / canvas.height);
+      }
+
+      function loadAnimationFromURL(url) {
+        if (sceneIsLoaded) {
+          var that = this;
+          scene.loadAnimation(url, 'animation', true, function() { that.animationLoaded(); });
         }
       }
 
       function animationLoaded() {
         update();
-      }
-
-      function loadAnimation() {
-        if (sceneIsLoaded) {
-          var animationName = document.getElementById("anim_select").value;
-          if (animationName != "---") {
-            var that = this;
-            scene.loadAnimation(animationName, 'animation', true, function() { that.animationLoaded(); });
-          }
-          else {
-            scene.resetToBindPose(scene.skeleton, null);
-            scene.animation = null;
-          }
-        }
       }
 
       function sceneLoaded() {
@@ -201,8 +238,13 @@
         for (var c = 0; c < cameras.length; ++c) {
           addToOutliner(cameras[c]);
           if (cameras[c].name == "persp")
-            scene.currentCamera = cameras[c].children[0];
+            setCurrentCamera(cameras[c].children[0]);
         }
+        var lights = scene.findNodesByType("light");
+        var amb = lights.length ? 0 : 0.5;
+        setAmbientLevel(amb);
+        document.getElementById('ambient_slider').value = amb * 255;
+
         showTools(false);
         setStatusMessage("Rendering scene with " + scene.getNumRoots() + " root nodes.");
         update();
@@ -284,26 +326,11 @@
         update();
       }
 
-      function initSceneList() {
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-          if (request.readyState == 1) {
-            request.overrideMimeType('application/json');
-            request.send();
-          }
-
-          if (request.readyState == 4) {
-            sceneList = JSON.parse(request.responseText);
-            var sceneSelect = document.getElementById("scene_select");
-            for (var m in sceneList.scenes) {
-              var newOpt = document.createElement('option');
-              newOpt.text = sceneList.scenes[m].name;
-              newOpt.value = sceneList.scenes[m].name;
-              sceneSelect.add(newOpt, null);
-            }
-          }
-        }
-        request.open("GET", 'json/index.json', true);
+      function updateToolPin() {
+        var checkboxes = document.getElementById("ui_checkbox_form");
+        pinTools = checkboxes.pin_tools.checked;
+        showTools(pinTools);
+        openFileDialog();
       }
 
       function resizeGame() {
@@ -322,12 +349,87 @@
         canvas.width = newWidth;
         canvas.height = newHeight;
         gl.viewport(0, 0, canvas.width, canvas.height);
+        arcball.setBounds(canvas.width, canvas.height);
         update();
       }
 
       function setAmbientLevel(ambient) {
         globalMaterialProperties.ambient = [ambient, ambient, ambient];
         update();
+      }
+
+      function setAnimationLOD(lod) {
+        globalMaterialProperties.animationLOD = lod;
+        update();
+      }
+
+      Storage.prototype.setObject = function(key, value) {
+        this.setItem(key, JSON.stringify(value));
+      }
+
+      Storage.prototype.getObject = function(key) {
+        return JSON.parse(this.getItem(key));
+      }
+
+      function openFileDialog() {
+        var fileDialogInfo = localStorage.getObject('recent-urls');
+        if (!fileDialogInfo) {
+          fileDialogInfo = { recent : [ "json/space-station.json", "json/char_no_scale.json", "json/anim-idle_anim.json"] };
+          localStorage.setObject('recent-urls', fileDialogInfo);
+        }
+        var dialog = document.getElementById('file-dialog');
+        dialog.style.display = "block";
+        var recent = document.getElementById('recent-files');
+        while (recent.firstChild) {
+          recent.removeChild(recent.firstChild);
+        }
+        for (var j = 0; j < fileDialogInfo.recent.length; ++j) {
+          var newdiv = document.createElement('a');
+          newdiv.setAttribute('href', fileDialogInfo.recent[j]);
+          newdiv.setAttribute('style', 'display: block');
+          newdiv.setAttribute('onclick', 'openRecent(this);return false;');
+          newdiv.innerHTML = fileDialogInfo.recent[j];
+          recent.appendChild(newdiv);
+        }
+      }
+
+      function addRecent(url) {
+        var fileDialogInfo = localStorage.getObject('recent-urls');
+        var r = [ url ];
+        for (var j = 0; j < fileDialogInfo.recent.length; ++j) {
+          if (fileDialogInfo.recent[j] != url) {
+            r[r.length] = fileDialogInfo.recent[j];
+          }
+        }
+        fileDialogInfo.recent = r;
+        localStorage.setObject('recent-urls', fileDialogInfo);
+      }
+
+      function openRecent(x) {
+        var urlInput = document.getElementById('url-input');
+        urlInput.value = x;
+      }
+
+      function closeFileDialog() {
+        var dialog = document.getElementById('file-dialog');
+        dialog.style.display = "none";
+      }
+
+      function openFile() {
+        closeFileDialog();
+        var urlInput = document.getElementById('url-input');
+        var url = urlInput.value;
+        addRecent(url);
+        var isAnim = /_anim.json$/.exec(url);
+        var span;
+        if (isAnim) {
+          loadAnimationFromURL(url);
+          span = document.getElementById('anim-url');
+        } else {
+          loadSceneFromURL(url);
+          span = document.getElementById('scene-url');
+        }
+        span.innerHTML = url;
       }
 
       window.addEventListener('resize', resizeGame, false);
@@ -337,94 +439,64 @@
       window.addEventListener('mouseup', onMouseUp, false);
 
     </script>
-    <style type="text/css">
-      #rtArea {
-        position: absolute;
-        left:     50%;
-        top:      50%;
-        /*overflow: hidden;*/
-      }
-
-      #my-canvas {
-        display: block;
-        /*width: 100%;
-        height: 100%;*/
-      }
-
-      #configview {
-        -o-transition-property: left;
-        -o-transition-duration: 1s;
-        -moz-transition-property: left;
-        -moz-transition-duration: 1s;
-        -webkit-transition-property: left;
-        -webkit-transition-duration: 1s;
-        border: 10px;
-        position: fixed;
-        height: 100%;
-        width: 200px;
-        /*overflow: hidden;*/
-        top: 0;
-        left: 0;
-        opacity: 0.8;
-        font-size: 16px;
-        text-align: left;
-        color: white;
-        background: gray;
-      }
-
-      #text {
-        -o-transition-property: bottom;
-        -o-transition-duration: 1s;
-        -moz-transition-property: bottom;
-        -moz-transition-duration: 1s;
-        -webkit-transition-property: bottom;
-        -webkit-transition-duration: 1s;
-        position: fixed;
-        width: 100%;
-        height: 20px;
-        bottom: -20;
-        opacity: 0.5;
-        font-size: 18px;
-        text-align: center;
-        color: white;
-        background: red;
-      }
-    </style>    
   </head>
-  <body onload="initSceneList(); initWebGL();resizeGame();" style="font-family: impact, sans-serif; font-size:10pt;">
+  <body onload="initWebGL();resizeGame();" style="font-family: 'Ubuntu', sans-serif; font-size:10pt;">
     <div id="rtArea">
       <canvas id="my-canvas"></canvas>
       <div id="configview">
-        <div id="outliner-title" style="padding-left:10px; box-sizing:border-box; width: 100%; background-color:black; color:#05a5e0">Outliner</div>
-        <div id="outliner" style="width: 100%; height:180px;background-color:#777;overflow:auto"></div>
-        <div id="display-title" style="padding-left:10px; box-sizing:border-box; width: 100%; background-color:black; color:#05a5e0">Display</div>
-        <div style="width:100%;box-sizing:border-box;padding-left:10px;padding-right:10px">
+        <div id="file-title" class="sidebar-title">Files</div>
+        <div class="sidebar-content">
+          <button style='width:100%' onmouseup='openFileDialog()'>Open file</button>
+          Scene:<br>
+          <span id='scene-url' style='font-size:8px'>--</span>
+          <br>
+          Anim:<br>
+          <span id='anim-url' style='font-size:8px'>--</span>
+        </div>
+        <div id="outliner-title" class="sidebar-title">Outliner</div>
+        <div id="outliner" class="sidebar-scrolled-content" style="height:192px"></div>
+        <div id="display-title" class="sidebar-title">Display</div>
+        <div class="sidebar-content">
           <form id="checkbox_form">
-            <input type="checkbox" id="mesh_visibility" checked="true" onclick="updateVisibility()" style="border:solid 1px black"/> Display Meshes<br/>
-            <input type="checkbox" id="skeleton_visibility" checked="true" onclick="updateVisibility()" style="border:solid 1px black"/> Display Skeleton<br/>
-            <input type="checkbox" id="world_visibility" checked="true" onclick="updateVisibility()" style="border:solid 1px black"/> Display World<br/>
+            <input type="checkbox" id="mesh_visibility" checked="true" onclick="updateVisibility()" /> Display Meshes<br/>
+            <input type="checkbox" id="skeleton_visibility" checked="true" onclick="updateVisibility()" /> Display Skeleton<br/>
+            <input type="checkbox" id="world_visibility" checked="true" onclick="updateVisibility()" /> Display World<br/>
           </form>
           <div>
             Ambient:
-            <input type="range"  min="0" max="255" value="0" onchange="setAmbientLevel(this.value/256);"/>
+            <input id="ambient_slider" type="range"  min="0" max="255" value="0" onchange="setAmbientLevel(this.value/256);"/>
+          </div>
+          <div>
+            Animation LOD:
+            <input type="range"  min="0" max="5" value="0" onchange="setAnimationLOD(this.value);"/>
           </div>
           <br/>
         </div>
-        <div id="file-title" style="padding-left:10px; box-sizing:border-box; width: 100%; background-color:black; color:#05a5e0">Files</div>
-        <div style="width:100%;box-sizing:border-box;padding-left:10px;padding-right:10px">
-          Scene:<br>
-          <select id="scene_select" onchange="loadScene();" style="width:100%;border:solid 1px black">
-            <option value="---" selected="selected">---</option>
-          </select>
+        <div id="gui-title" class="sidebar-title">User interface</div>
+        <div class="sidebar-content">
+          <form id="ui_checkbox_form">
+            <input type="checkbox" id="pin_tools" checked="true" onclick="updateToolPin()" /> Pin tools<br/>
+          </form>
         </div>
+
         <br/>
-        <div style="width:100%;box-sizing:border-box;padding-left:10px;padding-right:10px">
-          Anim:<br>
-          <select id="anim_select" onchange="loadAnimation();" style="width:100%;border:solid 1px black">
-            <option value="---" selected="selected">---</option>
-          </select>
+      </div>
+      <div id='nav-bar'>
+        <div id='zoomButton' class='zoom' onclick='toggleZoom()'></div>
+        <div id='panButton' class='pan' onclick='togglePan()'></div>
+        <div id='trackButton' class='track' onclick='toggleTrack()'></div>
+      </div>
+      <div id='file-dialog'>
+        <div class="sidebar-title" style='font-size:16pt'>Open file</div>
+        <div style='box-sizing:border-box;padding: 10px; width:100%; height:100%'>
+          URL:<br>
+          <input id='url-input' style="width:100%;border: solid 1px black;"></select>
+          <br><br>
+          Recent URLs:<br>
+          <div id='recent-files'>
+          </div>
+          <div style='right:10px;bottom:10px;text-align:right;position: absolute'><button onmouseup='openFile()'>OK</button><button onmouseup='closeFileDialog()'>Cancel</button></div>
         </div>
-          <br/>
       </div>
       <div id="text"></div>
     </div>

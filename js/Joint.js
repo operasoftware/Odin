@@ -48,6 +48,35 @@ function JointPrototype() {
         scene.jointMatrices[this.name] = accumulated;
     }
 
+    this.setupLODJoints = function(scene) {
+        if (this.lod) {
+            if (!scene.hasOwnProperty('lod')) {
+                scene.lod = [];
+                for (var k = 0; k < this.lod.length; ++k) {
+                    scene.lod[k] = {};
+                }
+            }
+            for (var j = 0; j < this.lod.length; ++j) {
+                if (this.lod[j] == 'x') {
+                    scene.lod[j][this.name] = this.name;
+                } else {
+                    var jnt = this.parent;
+                    while (jnt && jnt.lod[j] != 'x') {
+                        jnt = jnt.parent;
+                    }
+                    if (!jnt) { alert('Could not find parent!'); }
+                    scene.lod[j][this.name] = jnt.name;
+                }
+            }
+            if (this.children) {
+                for (var i = 0; i < this.children.length; ++i) {
+                    this.children[i].setupLODJoints(scene);
+                }
+            }
+        }
+    }
+
+
 };
 
 function Joint(scene, template) {
@@ -56,6 +85,7 @@ function Joint(scene, template) {
     Object.defineProperty(this, 'bindRotation', { value : template.bindRotation });
     Object.defineProperty(this, 'jointOrient', { value : template.jointOrient });
     Object.defineProperty(this, 'postRotate', { value : template.postRotate });
+    Object.defineProperty(this, 'lod', { value : template.lod });
     this.local = I4x3();
 };
 

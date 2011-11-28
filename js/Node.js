@@ -1,6 +1,12 @@
 
 function NodePrototype() {
 
+    this.deinit = function() {
+        if (this.children)
+            for (var i = 0; i < this.children.length; ++i)
+                this.children[i].deinit();
+    }
+
     this.resetToBindPose = function(scene, acc) {
 
         this.translate = this.getBindTranslation();
@@ -178,6 +184,18 @@ function NodePrototype() {
                 this.children[i].setParentPointers(this);
     }
 
+    this.setupLODJoints = function(scene) {
+        if (this.children)
+            for (var i = 0; i < this.children.length; ++i)
+                this.children[i].setupLODJoints(scene);
+    }
+
+    this.setupLODMeshes = function(lod) {
+        if (this.children)
+            for (var i = 0; i < this.children.length; ++i)
+                this.children[i].setupLODMeshes(lod);
+    }
+
     this.getLocalTransform = function() {
         return this.local.copy();
     }
@@ -210,31 +228,6 @@ function NodePrototype() {
                 this.children[i].findNodesByType(nodes, type, returnParents, this);
     }
 
-    this.pan = function(h,v) {
-        var acc = this.getAccumulatedTransform();
-        var x = acc.getX();
-        var y = acc.getY();
-        var m = M4x3().makeTranslate(x.x*h+y.x*v, x.y*h+y.y*v, x.z*h+y.z*v);
-        this.local.multiply(m);
-    }
-
-    this.zoom = function(h,v) {
-        var acc = this.getAccumulatedTransform();
-        var z = acc.getZ();
-        this.local.multiply(M4x3().makeTranslate(z.x * h, z.y * h, z.z * h));
-    }
-
-    this.track = function(h,v) {
-        //alert(this.local.flatten());
-        //var target = this.getCoordinatePlaneIntersection();
-        var eye = this.local.getT();
-        var atarget = this.local.getT().add(this.local.getZ().scale(1));
-        //var xzAngle = Math.atan2(target.x - eye.x, target.z - eye.z);
-        //var yAngle = Math.asin((target.y - eye.y) / (Math.sqrt(Math.pow(target.x - eye.x, 2) + Math.pow(target.z - eye.z, 2))));
-        this.local.makeLookAt(eye.x, eye.y, eye.z, atarget.x, atarget.y, atarget.z, 0, 1, 0);
-        //alert(this.local.flatten());
-    }
-
     this.getCoordinatePlaneIntersection = function() {
         var acc = this.getAccumulatedTransform();
         var P0 = acc.getT().scale(-1);
@@ -260,8 +253,8 @@ function NodePrototype() {
 };
 
 function Node(scene, template) {
-    this.name = template.name;
-    this.type = template.type;
+    Object.defineProperty(this, 'name', { value : template.name });
+    Object.defineProperty(this, 'type', { value : template.type });
     this.bindTranslation = template.translate;
     this.bindRotation = template.rotate;
     Object.defineProperty(this, 'bindScale', { value : template.scale});

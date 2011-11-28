@@ -1,6 +1,6 @@
 function Loader(doneCallback) {
     this.outstandingRequests = 0;
-    this.loadingDone = doneCallback;
+    this.loadingDone = [doneCallback];
 };
 
 Loader.prototype = new (function LoaderPrototype() {
@@ -25,6 +25,7 @@ Loader.prototype = new (function LoaderPrototype() {
             }
         }
         request.open('GET', file, true);
+        //request.open('GET', file + '?' + (new Date()).getTime(), true); // Debug, don't cache anything!
     }
 
     this.addRequest = function() {
@@ -34,11 +35,17 @@ Loader.prototype = new (function LoaderPrototype() {
     this.decOutstandingRequests = function() {
         this.outstandingRequests--;
         if (this.outstandingRequests == 0) {
-            this.loadingDone();
+            for (var j = 0; j < this.loadingDone.length; ++j) {
+                this.loadingDone[j]();
+            }
         }
     }
 
     this.fullyLoaded = function() {
         return this.outstandingRequests == 0;
+    }
+
+    this.addCallback = function(cb) {
+        this.loadingDone.push(cb);
     }
 })();
