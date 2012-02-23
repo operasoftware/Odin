@@ -20,7 +20,7 @@ function doPreprocess(txt, defined) {
 	var ifndef = /^[ \t]*#ifndef[ \t]+(.*)/;
 	var helse = /^[ \t]*#else/;
 	var endif = /^[ \t]*#endif/;
-	var preprocessor = /^[ \t]*#(#(ifdef|ifndef|endif).*)/;
+	var preprocessor = /^[ \t]*#(#(ifdef|ifndef|endif|else|define).*)/;
 
 	// Build a list of currentDirectives containing the preprocessor currentDirective and it's start and end line.
 	var currentDirectives = [];

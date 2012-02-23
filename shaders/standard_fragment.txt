@@ -1,9 +1,10 @@
-##ifdef GL_ES
+##ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
+##else
+precision mediump float;
 ##endif
 
 #ifdef MATTE
-varying vec4 vPosition;
 #ifdef DIFFUSE_TEXTURE
 varying vec2 vTextureCoord;
 uniform sampler2D uSampler;
@@ -146,7 +147,7 @@ void main(void) {
     for (int l = 0; l < 8; ++l)
     {
         if (l >= uNumLights)
-            break;
+            continue;
 
         if (uLightType[l] == 2) {
             lightDirection = normalize(-uLightLocation[l].xyz);

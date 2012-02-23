@@ -13,6 +13,8 @@ attribute vec2 aTextureCoord;
 #endif
 #ifdef SKINNED
 attribute vec4 aVertexWeights;
+#endif
+#ifdef SKINNED || STITCHED
 attribute vec4 aJointIndices;
 #endif
 
@@ -21,12 +23,16 @@ uniform mat4 uVPMatrix;
 #ifndef MATTE || SHADOWMAP
 uniform mat4 uNMatrix;
 #endif
-#ifdef SKINNED
+#ifdef SKINNED || STITCHED
 uniform mat4 uJointInvBindMatrices[30];
 uniform mat4 uJointMatrices[30];
 #endif
 
+#ifdef MATTE
+vec4 vPosition;
+#else
 varying vec4 vPosition;
+#endif
 #ifdef EMISSIVE_TEXTURE
 varying vec2 vEmissiveTexCoord;
 #endif
@@ -38,11 +44,19 @@ varying vec2 vTextureCoord;
 #endif
 
 void main(void) {
-#ifdef SKINNED
+#ifdef SKINNED || STITCHED
     vec4 skinnedPos = vec4(0,0,0,0);
 #ifndef MATTE || SHADOWMAP
     vec4 skinnedNorm = vec4(0,0,0,0);
 #endif
+#ifdef STITCHED
+    int i = int(aJointIndices[0]);
+    mat4 temp = uJointMatrices[i] * uJointInvBindMatrices[i];
+    skinnedPos =  temp * vec4(aVertexPosition, 1.0);
+#ifndef MATTE || SHADOWMAP
+    skinnedNorm +=  temp * vec4(aVertexNormal, 0.0);
+#endif
+#else
     for (int j = 0; j < 4; ++j)
     {
         int i = int(aJointIndices[j]);
@@ -52,6 +66,7 @@ void main(void) {
         skinnedNorm +=  temp * vec4(aVertexNormal, 0.0) * aVertexWeights[j];
 #endif
     }
+#endif
     vPosition = uMMatrix * skinnedPos;
 #ifndef MATTE || SHADOWMAP
     vTransformedNormal = uNMatrix * skinnedNorm;
@@ -63,8 +78,8 @@ void main(void) {
 #endif
 #endif
     gl_Position = uVPMatrix * vPosition;
-#ifdef EMISSIVE_TEXTURE    
-    vEmissiveTexCoord = aEmissiveTexCoord;    
+#ifdef EMISSIVE_TEXTURE
+    vEmissiveTexCoord = aEmissiveTexCoord;
 #endif
 #ifdef DIFFUSE_TEXTURE || SPECULAR_TEXTURE || SHININESS_TEXTURE || NORMAL_TEXTURE
     vTextureCoord = aTextureCoord;

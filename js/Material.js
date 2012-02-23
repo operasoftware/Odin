@@ -74,6 +74,7 @@ function MaterialPrototype() {
         this.diffuse = jsonmaterial.diffuse;
         this.normalMap = jsonmaterial.bump;
         this.skinned = jsonmaterial.skinned;
+        this.stitched = jsonmaterial.stitched;
         this.emission = jsonmaterial.emission;
         this.specular = jsonmaterial.specular;
 
@@ -127,6 +128,9 @@ function MaterialPrototype() {
         }
         if (this.skinned) {
             this.defines.push('SKINNED');
+        }
+        if (this.stitched) {
+            this.defines.push('STITCHED');
         }
         if (this.shadowReceiver) {
             this.defines.push('SHADOWED');
@@ -301,6 +305,9 @@ function MaterialPrototype() {
 
             if (this.skinned) {
                 this.getAttribLocation('aVertexWeights', 'aVertexWeights');
+            }
+
+            if (this.skinned || this.stitched) {
                 this.getAttribLocation('aJointIndices', 'aJointIndices');
                 this.getUniformLocation('jointInvBindMatrices', 'uJointInvBindMatrices');
                 this.getUniformLocation('jointMatrices', 'uJointMatrices');
@@ -487,6 +494,8 @@ function MaterialPrototype() {
 
             if (this.skinned) {
                 gl.enableVertexAttribArray(this.shaderProgram.aVertexWeights);
+            }
+            if (this.skinned || this.stitched) {
                 gl.enableVertexAttribArray(this.shaderProgram.aJointIndices);
             }
         }
@@ -507,6 +516,8 @@ function MaterialPrototype() {
 
         if (this.skinned) {
             gl.disableVertexAttribArray(this.shaderProgram.aVertexWeights);
+        }
+        if (this.skinned || this.stitched) {
             gl.disableVertexAttribArray(this.shaderProgram.aJointIndices);
         }
 

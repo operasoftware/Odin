@@ -287,6 +287,8 @@ function MeshPrototype() {
             if (mat.skinned) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.mVertexWeightBuffer);
                 gl.vertexAttribPointer(mat.shaderProgram.aVertexWeights, this.mVertexWeightBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            }
+            if (mat.skinned || mat.stitched) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, thislod.mVertexJointIndexBuffer);
                 gl.vertexAttribPointer(mat.shaderProgram.aJointIndices, thislod.mVertexJointIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
                 gl.uniformMatrix4fv(mat.shaderProgram.jointInvBindMatrices, false, thislod.jointInvBindMatrices);
@@ -347,6 +349,8 @@ function MeshPrototype() {
             if (mat.skinned) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.mVertexWeightBuffer);
                 gl.vertexAttribPointer(mat.shaderProgram.aVertexWeights, this.mVertexWeightBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            }
+            if (mat.skinned || mat.stitched) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, thislod.mVertexJointIndexBuffer);
                 gl.vertexAttribPointer(mat.shaderProgram.aJointIndices, thislod.mVertexJointIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
                 gl.uniformMatrix4fv(mat.shaderProgram.jointInvBindMatrices, false, thislod.jointInvBindMatrices)
