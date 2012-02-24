@@ -1,0 +1,71 @@
+div.zoom-selected
+{
+  position: relative;
+  width: 64px;
+  height: 64px;
+  background: url('images/viewer-icons.png') 0px -64px no-repeat;
+  background-clip: content-box;
+}
+
+div.zoom
+{
+  position: relative;
+  width: 64px;
+  height: 64px;
+  background: url('images/viewer-icons.png') 0px -128px no-repeat;
+  background-clip: content-box;
+}
+
+div.pan-selected
+{
+  position: relative;
+  width: 64px;
+  height: 64px;
+  background: url('images/viewer-icons.png') -64px -64px no-repeat;
+  background-clip: content-box;
+}
+
+div.pan
+{
+  position: relative;
+  width: 64px;
+  height: 64px;
+  background: url('images/viewer-icons.png') -64px -128px no-repeat;
+  background-clip: content-box;
+}
+
+div.track-selected
+{
+  position: relative;
+  width: 64px;
+  height: 64px;
+  background: url('images/viewer-icons.png') -128px -64px no-repeat;
+  background-clip: content-box;
+}
+
+div.track
+{
+  position: relative;
+  width: 64px;
+  height: 64px;
+  background: url('images/viewer-icons.png') -128px -128px no-repeat;
+  background-clip: content-box;
+}
+
+div.camera-selected
+{
+  position: relative;
+  width: 32px;
+  height: 32px;
+  background: url('images/viewer-icons.png') 0px 0px no-repeat;
+  background-clip: content-box;
+}
+
+div.camera
+{
+  position: relative;
+  width: 32px;
+  height: 32px;
+  background: url('images/viewer-icons.png') 0px -32px no-repeat;
+  background-clip: content-box;
+}

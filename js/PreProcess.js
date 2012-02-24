@@ -20,7 +20,7 @@ function doPreprocess(txt, defined) {
 	var ifndef = /^[ \t]*#ifndef[ \t]+(.*)/;
 	var helse = /^[ \t]*#else/;
 	var endif = /^[ \t]*#endif/;
-	var preprocessor = /^[ \t]*#(#(ifdef|ifndef|endif).*)/;
+	var preprocessor = /^[ \t]*#(#(ifdef|ifndef|endif|else|define).*)/;
 
 	// Build a list of currentDirectives containing the preprocessor currentDirective and it's start and end line.
 	var currentDirectives = [];
@@ -45,7 +45,7 @@ function doPreprocess(txt, defined) {
 			currentDirectives.push({'type' : 'ifdef', 'label' : expr, 'start' : i, 'helse' : -1, 'end' : -1});
 			continue;
 		}
-		
+
 		// If it's an #ifndef.
 		res = ifndef.exec(lines[i]);
 		if (res) {
@@ -124,7 +124,7 @@ function doPreprocess(txt, defined) {
 			// Create a scope object and add all the defines to it..
 			var scope = {};
 			for (var k = 0; k < defined.length; ++k) {
-				scope[defined[k]] = true;
+				scope[defined[k].key] = defined[k].value;
 			}
 			// Calculate the boolean expression.
 			eval('var isDefined = ' + currentDirectives[currentDir].label + ';');
@@ -142,5 +142,11 @@ function doPreprocess(txt, defined) {
 			res += lines[j] + '\n';
 		}
 	}
-	return res;
+
+	var preproc = '';
+	for (var k = 0; k < defined.length; ++k) {
+		preproc += '#define ' + defined[k].key + ' ' + defined[k].value + '\n';
+	}
+
+	return preproc + res;
 }

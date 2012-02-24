@@ -1,0 +1,141 @@
+﻿<html>
+  <head>
+    <title>Opera Mobile WebGL demo</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
+    <script type="text/javascript" src="../js/Collada.js"></script>
+    <script type="text/javascript" src="../js/PreProcess.js"></script>
+    <script type="text/javascript" src="../js/Loader.js"></script>
+    <script type="text/javascript" src="../js/VectorMath.js"></script>
+    <script type="text/javascript" src="../js/Animation.js"></script>
+    <script type="text/javascript" src="../js/Material.js"></script>
+    <script type="text/javascript" src="../js/MaterialCache.js"></script>
+    <script type="text/javascript" src="../js/TextureCache.js"></script>
+    <script type="text/javascript" src="../js/Node.js"></script>
+    <script type="text/javascript" src="../js/Mesh.js"></script>
+    <script type="text/javascript" src="../js/DebugDraw.js"></script>
+    <script type="text/javascript" src="../js/Joint.js"></script>
+    <script type="text/javascript" src="../js/Scene.js"></script>
+    <script type="text/javascript" src="../js/Light.js"></script>
+    <script type="text/javascript" src="../js/Camera.js"></script>
+    <script type="text/javascript" src="../js/GlobalMaterialProperties.js"></script>
+    <script type="text/javascript" src="../js/ArcBall.js"></script>
+
+    <script language="javascript" type="text/javascript">
+      var canvas;
+      var gl;
+      var scene;
+      var character;
+      var sceneIsLoaded = false;
+      var characterIsLoaded = false;
+      var startTime = (new Date()).getTime();
+      var frameCount = 0;
+      var updateInterval = 30;
+      var t = 0;
+
+      function ErrorMessage(msg) {
+        alert(msg);
+      }
+
+      function InfoMessage(msg) {
+      }
+
+      function animationLoaded() {
+
+      }
+
+      function characterLoaded() {
+        scene.subScenes[0] = character;
+        character.loadAnimation('json/anim-walk_anim.json', 'animation', true, function() { animationLoaded(); });
+        charRoot = character.findNode('RIG_joints_grp');
+        charRoot.translate = [0, 0, 0];
+        charRoot.rotate = [0, 180, 0];
+        update();
+      }
+
+      function sceneLoaded() {
+        sceneIsLoaded = true;
+        character = new Scene('json/character.json', function () { characterLoaded(); }, canvas.width / canvas.height);
+
+        globalMaterialProperties.ambient = [0.05, 0.05, 0.05];
+        globalMaterialProperties.maxLights = 3;
+        scene.currentCamera.yfov = 13;
+      }
+
+      function initWebGL() {
+        fps = document.getElementById('fps');
+        canvas = document.getElementById("my-canvas");
+        rrail = document.getElementById('rrail');
+        gl = canvas.getContext("experimental-webgl", { alpha : true });
+        if (gl) {
+          gl.getExtension("OES_standard_derivatives");
+          gl.clearColor(0.0, 0.0, 0.0, 0.0);
+
+          gl.clearDepth(1.0);
+          gl.enable(gl.DEPTH_TEST);
+          gl.depthFunc(gl.LEQUAL);
+
+          lastTime = (new Date()).getTime();
+
+          scene = new Scene('json/mobile-b.json', function() { sceneLoaded(); }, canvas.width / canvas.height);
+        }
+      }
+
+      function update() {
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+        var currTime = (new Date()).getTime();
+
+        if (++frameCount == updateInterval) {
+          frameCount = 0;
+          fps.innerHTML = (1000/((currTime - startTime)/updateInterval)).toFixed(2);
+          startTime = currTime;
+        }
+        var dt = (currTime - lastTime) / 1000.0;
+        lastTime = currTime;
+
+        t += dt;
+        if (t > Math.PI * 4)
+          t = 0;
+        var ang = Math.min(t, Math.PI * 2);
+        var off = -90;
+        if (t > Math.PI * 2) {
+          if (t > Math.PI * 3) {
+            off = (t - Math.PI * 3) / Math.PI * -90;
+          } else {
+            off = (1 - (t - Math.PI * 2) / Math.PI) * -90;
+          }
+        }
+        charRoot.translate = [20 * Math.sin(ang), -5, off + 20 * Math.cos(ang)];
+        if (off > -90)
+          rrail.style.display = 'none';
+        else
+          rrail.style.display = 'inline';
+
+
+        if (scene && sceneIsLoaded) {
+          if (scene.currentCamera) {
+            scene.currentCamera.setMatrices();
+          } else {
+            projectionMatrix().makePerspective(45, canvas.width/canvas.height, 1, 10);
+          }
+
+          scene.update(dt);
+
+          modelMatrix().makeIdentity();
+          scene.draw();
+
+          setTimeout(update, 0);
+        }
+      }
+
+    </script>
+  </head>
+  <body onload="initWebGL()" style='color: white; margin: 0px; width: 100%; height: 100%; background-color: black; background-image: url("backdrop.jpg"); background-repeat: no-repeat; background-position: center'>
+      <canvas id="my-canvas" width='600' height='380' style='position: absolute; top: 50%; left: 50%; margin-left: -200px; margin-top: -160px'></canvas>
+      <img src='left-rail.png' style='position: absolute; top: 50%; left: 50%; margin-left: -178px; margin-top: 6px'></div>
+      <img id='rrail' src='right-rail.png' style='position: absolute; top: 50%; left: 50%; margin-left: 123px; margin-top: 8px'></div>
+      <img src='OperaMobile.png' style="-o-transform: rotate(-90deg); -o-transform-origin: top left;width: 400px;position: absolute; top: 50%; left: 0%; margin-top: 200px; margin-left: 10px"></img>
+      <p id='fps' style='display: none'></p>
+  </body>
+</html>

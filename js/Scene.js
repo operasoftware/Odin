@@ -58,57 +58,14 @@ function ScenePrototype() {
     }
 
     this.handleSceneLoaded = function (txt) {
-
+        var that = this;
         this.loader.addRequest();
         this.initFromJSON(txt, true);
         this.setParentPointers();
         this.resetToBindPose();
+        this.loader.addCallback(function() { that.setupLOD(); });
         this.loader.decOutstandingRequests();
-
-        // DEBUG
-        this.quadBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
-        var vertices = [0, 0, 1, 0, 0,  1, 1,  1, 0, 0, 1, 0, 0, 1, 1, 1];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-
-        this.vshader = gl.createShader(gl.VERTEX_SHADER);
-        gl.shaderSource(this.vshader, 'attribute vec2 vpos;attribute vec2 texc;varying vec2 uv;\nuniform vec4 rect;\nvoid main() {\nuv = texc;\ngl_Position = vec4(rect.xy + vpos * rect.zw,0,1);\n}');
-        gl.compileShader(this.vshader);
-
-        this.fshader = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(this.fshader, 'precision highp float;\nvarying vec2 uv;\nuniform sampler2D tex;\nvoid main() {\ngl_FragColor = texture2D(tex, uv);\n}');
-        gl.compileShader(this.fshader);
-
-        this.program = gl.createProgram();
-        gl.attachShader(this.program, this.vshader);
-        gl.attachShader(this.program, this.fshader);
-        gl.linkProgram(this.program);
-        this.program.vpos = gl.getAttribLocation(this.program, 'vpos');
-        this.program.dim = gl.getAttribLocation(this.program, 'texc');
-        this.program.rect = gl.getUniformLocation(this.program, 'rect');
-        this.program.tex = gl.getUniformLocation(this.program, 'tex');
-        // DEBUG
-
-        //this.postProcess = new PostProcess();
     }
-
-    // DEBUG
-    this.drawQuad = function(rect, tex) {
-        var depth = gl.getParameter(gl.DEPTH_TEST);
-        gl.clear(gl.DEPTH_BUFFER_BITS);
-        gl.useProgram(this.program);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
-        gl.enableVertexAttribArray(this.program.vpos);
-        gl.enableVertexAttribArray(this.program.texc);
-        gl.vertexAttribPointer(this.program.vpos, 2, gl.FLOAT, false, 0, 0);
-        gl.vertexAttribPointer(this.program.texc, 2, gl.FLOAT, false, 0, 8 * 4);
-        gl.uniform4f(this.program.rect, rect[0], rect[1], rect[2], rect[3]);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.uniform1i(this.program.tex, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    }
-    // DEBUG
 
     this.setParentPointers = function() {
         for (var n = 0; n < this.json.nodes.length; ++n) {
@@ -116,8 +73,25 @@ function ScenePrototype() {
         }
     }
 
+    this.setupLOD = function() {
+        for (var n = 0; n < this.json.nodes.length; ++n) {
+            this.json.nodes[n].setupLODJoints(this);
+        }
+        if (this.hasOwnProperty('lod')) {
+            for (var n = 0; n < this.json.nodes.length; ++n) {
+                this.json.nodes[n].setupLODMeshes(this.lod);
+            }
+        }
+    }
+
     this.fullyLoaded = function() {
         return this.loader.fullyLoaded();
+    }
+
+    this.deinit = function() {
+         for (var n = 0; n < this.json.nodes.length; ++n) {
+            this.json.nodes[n].deinit();
+        }
     }
 
     this.culled = function(light) {
@@ -264,19 +238,7 @@ function ScenePrototype() {
         }
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.depthFunc(gl.LEQUAL);
-        //document.getElementById('debug').innerHTML = drawCount;
         ++this.frameNum;
-
-        // DEBUG
-        /*var numCasters = 0;
-        for (var k = 0; k < this.lights.length; ++k) {
-            var light  = this.lights[k];
-            if (light.castsShadows) {
-                this.drawQuad([-1+numCasters*0.5,0.5,0.5,0.5],light.shadowTexture);
-                numCasters++;
-            }
-        }*/
-        // DEBUG
     }
 
     this.drawSkeleton = function(dbgDraw, frames) {

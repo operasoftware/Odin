@@ -57,6 +57,9 @@ varying vec2 vEmissiveTexCoord;
 #endif
 
 #ifdef PHONG
+##ifndef MAX_LIGHTS
+##define MAX_LIGHTS 8
+##endif
 #ifndef SHININESS_TEXTURE
 uniform float uMaterialShininess;
 #endif
@@ -67,17 +70,17 @@ uniform vec3 uAmbientColor;
 
 /* Light sources */
 uniform int uNumLights;
-uniform int uLightType[8]; // 0 = point, 1 = spot, 2 = directional
-uniform vec4 uLightLocation[8];
-uniform mat4 uLightViewMatrix[8];
-uniform mat4 uLightVPMatrix[8];
+uniform int uLightType[MAX_LIGHTS]; // 0 = point, 1 = spot, 2 = directional
+uniform vec4 uLightLocation[MAX_LIGHTS];
+uniform mat4 uLightViewMatrix[MAX_LIGHTS];
+uniform mat4 uLightVPMatrix[MAX_LIGHTS];
 #ifdef PHONG
-uniform vec3 uLightSpecularColor[8];
+uniform vec3 uLightSpecularColor[MAX_LIGHTS];
 #endif
-uniform vec3 uLightDiffuseColor[8];
+uniform vec3 uLightDiffuseColor[MAX_LIGHTS];
 #ifdef SHADOWED
-uniform int uCastsShadows[8];
-uniform sampler2D uShadowSampler[8];
+uniform int uCastsShadows[MAX_LIGHTS];
+uniform sampler2D uShadowSampler[MAX_LIGHTS];
 #endif
 
 #ifdef DIFFUSE_TEXTURE
@@ -144,7 +147,7 @@ void main(void) {
     vec4 shadow, lvsPos;
     const vec4 unpack = vec4(1.0, 1.0/256.0, 1.0/65536.0, 1.0/16777216.0);
 #endif
-    for (int l = 0; l < 8; ++l)
+    for (int l = 0; l < MAX_LIGHTS; ++l)
     {
         if (l >= uNumLights)
             continue;

@@ -1,0 +1,8 @@
+{
+  "nodes" : 
+  [
+    { "type" : "node", "name" : "WalkableArea_geo", "translate" : [0, 0.4286164, 0], "rotate" : [0, 0, 0], "scale" : [1, 1, 1], "children" : [
+      { "type" : "mesh", "file" : "./json/walkable-area/WalkableArea_geoShape-mesh.json" }
+    ]}
+  ]
+}

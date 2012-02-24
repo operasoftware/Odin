@@ -8,6 +8,7 @@ function Mesh(scene, json, shadowCaster, shadowReceiver) {
     this.shadowReceiver = shadowReceiver;
     var thisObj = this;
     this.doFileRequest(json.file, function(txt) { thisObj.handleMeshLoaded(txt); });
+    this.animationLOD = 0;
 };
 
 function MeshPrototype() {
@@ -25,8 +26,10 @@ function MeshPrototype() {
             if (request.readyState == 4) {
                 callback(request.responseText);
                 thisObj.outstandingRequests--;
-                if (thisObj.outstandingRequests == 0)
+                if (thisObj.outstandingRequests == 0) {
+                    thisObj.initMesh();
                     thisObj.loadingDone.call();
+                }
             }
         }
         request.open('GET', file, true);
@@ -67,7 +70,7 @@ function MeshPrototype() {
         this.needsEmissiveTexCoord = false;
         for (var m in this.materials) {
             var mat = this.materials[m];
-            this.needsTexCoord |= mat.hasTexture(); 
+            this.needsTexCoord |= mat.hasTexture();
             this.needsEmissiveTexCoord |= mat.hasEmissiveTex;
             this.needsNormals |= (mat.type != 'matte' && mat.type != 'custom' && mat.type != 'shadowmap');
         }
@@ -113,18 +116,21 @@ function MeshPrototype() {
         this.mVertexIndexBuffer.itemSize = 3;
         this.mVertexIndexBuffer.numItems = this.json.indices.length;
 
+        this.lod = [{}];
+        var lod0 = this.lod[0];
+
         // Multiply together BSM and IBMi as they're constant.
         // NOTE: The json format stores the matrices in row major to make them easier to read.
         if (this.json.bindShapeMatrix && this.json.invBindMatrices) {
           var a = this.json.bindShapeMatrix;
           var bsm = M4x4().make(a[0], a[4], a[8], a[12], a[1], a[5], a[9], a[13], a[2], a[6], a[10], a[14], a[3], a[7], a[11], a[15]);
 
-          this.jointInvBindMatrices = [];
+          lod0.jointInvBindMatrices = [];
           for (var j = 0; j < this.json.invBindMatrices.length; j += 16) {
               var a = this.json.invBindMatrices;
               var m = M4x4().make(a[j+0], a[j+4], a[j+8], a[j+12], a[j+1], a[j+5], a[j+9], a[j+13], a[j+2], a[j+6], a[j+10], a[j+14], a[j+3], a[j+7], a[j+11], a[j+15]);
               var mul = bsm.copy().multiply(m);
-              this.jointInvBindMatrices = this.jointInvBindMatrices.concat(mul.flatten());
+              lod0.jointInvBindMatrices = lod0.jointInvBindMatrices.concat(mul.flatten());
           }
         }
 
@@ -137,15 +143,106 @@ function MeshPrototype() {
         }
 
         if (this.json.jointIndices) {
-            this.mVertexJointIndexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.mVertexJointIndexBuffer);
+            lod0.mVertexJointIndexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, lod0.mVertexJointIndexBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.json.jointIndices), gl.STATIC_DRAW);
-            this.mVertexJointIndexBuffer.itemSize = 4;
-            this.mVertexJointIndexBuffer.numItems = this.json.jointIndices.length / 4;
+            lod0.mVertexJointIndexBuffer.itemSize = 4;
+            lod0.mVertexJointIndexBuffer.numItems = this.json.jointIndices.length / 4;
         }
 
-        this.jointNames = this.json.jointNames;
-        this.json = null; 
+        lod0.jointNames = this.json.jointNames;
+    }
+
+    this.deleteBuffer = function(buf) {
+        if (buf) {
+            gl.deleteBuffer(buf);
+        }
+    }
+
+    this.deinit = function() {
+        this.deleteBuffer(this.mVertexNormalBuffer);
+        this.deleteBuffer(this.mVertexTextureCoordBuffer);
+        this.deleteBuffer(this.mVertexEmissiveTexCoordBuffer);
+        this.deleteBuffer(this.mVertexPositionBuffer);
+        this.deleteBuffer(this.mVertexIndexBuffer);
+        if (this.hasOwnProperty('lod')) {
+            for (var i = 0; i < this.lod.length; ++i) {
+                this.deleteBuffer(this.lod[i].mVertexWeightBuffer);
+                this.deleteBuffer(this.lod[i].mVertexJointIndexBuffer);
+            }
+        }
+    }
+
+    this.setupLODMeshes = function(lod) {
+        var lod0 = this.lod[0];
+        for (var j = 0; j < lod.length; ++j) {
+            this.lod[j+1] = {};
+            var thislod = this.lod[j+1];
+            var mapping = {};
+            for (var n = 0; n < lod0.jointNames.length; ++n) {
+                var jointName = lod0.jointNames[n];
+                var mapToName = lod[j][jointName];
+                if (mapToName == jointName) {
+                    mapping[n] = { mapto : n, thisind : -1 };
+                } else {
+                    for (var k = 0; k < lod0.jointNames.length; ++k) {
+                        if (mapToName == lod0.jointNames[k]) {
+                            mapping[n] = { mapto: k, thisind : -1 };
+                            break;
+                        }
+                    }
+                    if (!mapping.hasOwnProperty(n.toString())) { alert('Could not find the mapping!') }
+                }
+            }
+            var num = 0;
+            for (var k = 0; k < lod0.jointNames.length; ++k) {
+                if (mapping[k].mapto == k) {
+                    mapping[k].thisind = num;
+                    ++num;
+                }
+            }
+
+            if (lod0.jointInvBindMatrices) {
+                thislod.jointInvBindMatrices = [];
+                for (var x = 0; x < lod0.jointInvBindMatrices.length; x += 16) {
+                    if (mapping[x / 16].mapto == x / 16) {
+                        for (c = x; c < x + 16; ++c) {
+                            thislod.jointInvBindMatrices[thislod.jointInvBindMatrices.length] = lod0.jointInvBindMatrices[c];
+                        }
+                    }
+                }
+            }
+
+            if (this.json.jointIndices) {
+                var jointIndices = new Array(this.json.jointIndices.length);
+                for (var x = 0; x < this.json.jointIndices.length; ++x) {
+                    jointIndices[x] = mapping[mapping[this.json.jointIndices[x]].mapto].thisind;
+                }
+
+                thislod.mVertexJointIndexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, thislod.mVertexJointIndexBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(jointIndices), gl.STATIC_DRAW);
+                thislod.mVertexJointIndexBuffer.itemSize = 4;
+                thislod.mVertexJointIndexBuffer.numItems = jointIndices.length / 4;
+            }
+
+            if (this.json.jointNames)
+            {
+                thislod.jointNames = [];
+                for (var x = 0; x < this.json.jointNames.length; ++x) {
+                    if (mapping[x].mapto == x) {
+                        thislod.jointNames[thislod.jointNames.length] = this.json.jointNames[x];
+                    }
+                }
+            }
+        }
+        this.json = null;
+    }
+
+    this.getCurrentLOD = function() {
+        if (!this.hasOwnProperty('lod')) return undefined;
+        var currLOD = globalMaterialProperties.hasOwnProperty('animationLOD') ? globalMaterialProperties.animationLOD : this.animationLOD;
+        return this.lod[currLOD >= this.lod.length ? this.lod.length - 1 : currLOD];
     }
 
     this.drawShadow = function (jointMatrices, light) {
@@ -153,12 +250,14 @@ function MeshPrototype() {
             return;
         }
 
+        var thislod = this.getCurrentLOD();
+
         var lights = light ? [light] : [];
 
-        if (this.jointNames) {
+        if (thislod && thislod.jointNames) {
             this.jointMatrices = []
-            for (var i = 0; i < this.jointNames.length; ++i) {
-                var jointName = this.jointNames[i];
+            for (var i = 0; i < thislod.jointNames.length; ++i) {
+                var jointName = thislod.jointNames[i];
                 if (jointMatrices[jointName]) {
                     this.jointMatrices = this.jointMatrices.concat(M4x4().make(jointMatrices[jointName]).flatten());
                 } else {
@@ -188,9 +287,11 @@ function MeshPrototype() {
             if (mat.skinned) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.mVertexWeightBuffer);
                 gl.vertexAttribPointer(mat.shaderProgram.aVertexWeights, this.mVertexWeightBuffer.itemSize, gl.FLOAT, false, 0, 0);
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.mVertexJointIndexBuffer);
-                gl.vertexAttribPointer(mat.shaderProgram.aJointIndices, this.mVertexJointIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-                gl.uniformMatrix4fv(mat.shaderProgram.jointInvBindMatrices, false, this.jointInvBindMatrices);
+            }
+            if (mat.skinned || mat.stitched) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, thislod.mVertexJointIndexBuffer);
+                gl.vertexAttribPointer(mat.shaderProgram.aJointIndices, thislod.mVertexJointIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.uniformMatrix4fv(mat.shaderProgram.jointInvBindMatrices, false, thislod.jointInvBindMatrices);
                 gl.uniformMatrix4fv(mat.shaderProgram.jointMatrices, false, this.jointMatrices);
             }
 
@@ -201,10 +302,13 @@ function MeshPrototype() {
     }
 
     this.draw = function (jointMatrices, lights) {
-        if (this.jointNames) {
+
+        var thislod = this.getCurrentLOD();
+
+        if (thislod && thislod.jointNames) {
             this.jointMatrices = []
-            for (var i = 0; i < this.jointNames.length; ++i) {
-                var jointName = this.jointNames[i];
+            for (var i = 0; i < thislod.jointNames.length; ++i) {
+                var jointName = thislod.jointNames[i];
                 if (jointMatrices[jointName]) {
                     this.jointMatrices = this.jointMatrices.concat(M4x4().make(jointMatrices[jointName]).flatten())
                 } else {
@@ -220,15 +324,6 @@ function MeshPrototype() {
             if (m + 1 != this.materials.length)
                 end = this.materialStarts[m + 1];
 
-            /*if (lights.length < 1) {
-                alert('Doing ambient pass!'');
-
-                if (mat.skinned)
-                    mat = this.ambientSkinnedMaterial;
-                else
-                    mat = this.ambientMaterial;
-
-            }*/
             mat.enable(lights);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.mVertexPositionBuffer);
@@ -254,9 +349,11 @@ function MeshPrototype() {
             if (mat.skinned) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.mVertexWeightBuffer);
                 gl.vertexAttribPointer(mat.shaderProgram.aVertexWeights, this.mVertexWeightBuffer.itemSize, gl.FLOAT, false, 0, 0);
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.mVertexJointIndexBuffer);
-                gl.vertexAttribPointer(mat.shaderProgram.aJointIndices, this.mVertexJointIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-                gl.uniformMatrix4fv(mat.shaderProgram.jointInvBindMatrices, false, this.jointInvBindMatrices)
+            }
+            if (mat.skinned || mat.stitched) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, thislod.mVertexJointIndexBuffer);
+                gl.vertexAttribPointer(mat.shaderProgram.aJointIndices, thislod.mVertexJointIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.uniformMatrix4fv(mat.shaderProgram.jointInvBindMatrices, false, thislod.jointInvBindMatrices)
                 gl.uniformMatrix4fv(mat.shaderProgram.jointMatrices, false, this.jointMatrices)
             }
 

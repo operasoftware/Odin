@@ -1,6 +1,12 @@
 
 function NodePrototype() {
 
+    this.deinit = function() {
+        if (this.children)
+            for (var i = 0; i < this.children.length; ++i)
+                this.children[i].deinit();
+    }
+
     this.resetToBindPose = function(scene, acc) {
 
         this.translate = this.getBindTranslation();
@@ -133,31 +139,30 @@ function NodePrototype() {
         // Current animation
         var t1 = this.getAnimatedTransformation(scene.animation);
 
-        // Weight factors for the fade in/out animations
-        var w1 = 1.0;
-        var fadeAnim = null;
         if (scene.animation.fadeTime < scene.animation.fadeMax && scene.animation.fadeAnim) {
-            fadeAnim = scene.animation.fadeAnim;
-            w1 = scene.animation.fadeTime / scene.animation.fadeMax;
+            // Weight factors for the fade in/out animations
+            var fadeAnim = scene.animation.fadeAnim;
+            var w1 = scene.animation.fadeTime / scene.animation.fadeMax;
+            var w2 = 1.0 - w1;
+
+            // Old animation
+            var t2 = this.getAnimatedTransformation(fadeAnim);
+
+            // Blend animations
+            var translation = [w1 * t1.translation[0] + w2 * t2.translation[0],
+                               w1 * t1.translation[1] + w2 * t2.translation[1],
+                               w1 * t1.translation[2] + w2 * t2.translation[2]];
+            var rotation = [w1 * t1.rotation[0] + w2 * t2.rotation[0],
+                            w1 * t1.rotation[1] + w2 * t2.rotation[1],
+                            w1 * t1.rotation[2] + w2 * t2.rotation[2]];
+            var scale = [w1 * t1.scale[0] + w2 * t2.scale[0],
+                         w1 * t1.scale[1] + w2 * t2.scale[1],
+                         w1 * t1.scale[2] + w2 * t2.scale[2]];
+            var visibility = t1.visibility || t2.visibility;
+            this.calculateLocalTransform(translation, rotation, scale, [1.0 / acc.getX().magnitude(), 1.0 / acc.getY().magnitude(), 1.0 / acc.getZ().magnitude()], visibility);
+        } else {
+            this.calculateLocalTransform(t1.translation, t1.rotation, t1.scale, [1.0 / acc.getX().magnitude(), 1.0 / acc.getY().magnitude(), 1.0 / acc.getZ().magnitude()], t1.visibility);
         }
-        var w2 = 1.0 - w1;
-
-        // Old animation
-        var t2 = this.getAnimatedTransformation(fadeAnim);
-
-        // Blend animations
-        var translation = [w1 * t1.translation[0] + w2 * t2.translation[0],
-                           w1 * t1.translation[1] + w2 * t2.translation[1],
-                           w1 * t1.translation[2] + w2 * t2.translation[2]];
-        var rotation = [w1 * t1.rotation[0] + w2 * t2.rotation[0],
-                        w1 * t1.rotation[1] + w2 * t2.rotation[1],
-                        w1 * t1.rotation[2] + w2 * t2.rotation[2]];
-        var scale = [w1 * t1.scale[0] + w2 * t2.scale[0],
-                     w1 * t1.scale[1] + w2 * t2.scale[1],
-                     w1 * t1.scale[2] + w2 * t2.scale[2]];
-        var visibility = t1.visibility || t2.visibility;
-
-        this.calculateLocalTransform(translation, rotation, scale, [1.0 / acc.getX().magnitude(), 1.0 / acc.getY().magnitude(), 1.0 / acc.getZ().magnitude()], visibility);
 
         var accumulated = acc.copy().multiply(this.getLocalTransform());
 
@@ -176,6 +181,18 @@ function NodePrototype() {
         if (this.children)
             for (var i = 0; i < this.children.length; ++i)
                 this.children[i].setParentPointers(this);
+    }
+
+    this.setupLODJoints = function(scene) {
+        if (this.children)
+            for (var i = 0; i < this.children.length; ++i)
+                this.children[i].setupLODJoints(scene);
+    }
+
+    this.setupLODMeshes = function(lod) {
+        if (this.children)
+            for (var i = 0; i < this.children.length; ++i)
+                this.children[i].setupLODMeshes(lod);
     }
 
     this.getLocalTransform = function() {
@@ -210,31 +227,6 @@ function NodePrototype() {
                 this.children[i].findNodesByType(nodes, type, returnParents, this);
     }
 
-    this.pan = function(h,v) {
-        var acc = this.getAccumulatedTransform();
-        var x = acc.getX();
-        var y = acc.getY();
-        var m = M4x3().makeTranslate(x.x*h+y.x*v, x.y*h+y.y*v, x.z*h+y.z*v);
-        this.local.multiply(m);
-    }
-
-    this.zoom = function(h,v) {
-        var acc = this.getAccumulatedTransform();
-        var z = acc.getZ();
-        this.local.multiply(M4x3().makeTranslate(z.x * h, z.y * h, z.z * h));
-    }
-
-    this.track = function(h,v) {
-        //alert(this.local.flatten());
-        //var target = this.getCoordinatePlaneIntersection();
-        var eye = this.local.getT();
-        var atarget = this.local.getT().add(this.local.getZ().scale(1));
-        //var xzAngle = Math.atan2(target.x - eye.x, target.z - eye.z);
-        //var yAngle = Math.asin((target.y - eye.y) / (Math.sqrt(Math.pow(target.x - eye.x, 2) + Math.pow(target.z - eye.z, 2))));
-        this.local.makeLookAt(eye.x, eye.y, eye.z, atarget.x, atarget.y, atarget.z, 0, 1, 0);
-        //alert(this.local.flatten());
-    }
-
     this.getCoordinatePlaneIntersection = function() {
         var acc = this.getAccumulatedTransform();
         var P0 = acc.getT().scale(-1);
@@ -260,8 +252,8 @@ function NodePrototype() {
 };
 
 function Node(scene, template) {
-    this.name = template.name;
-    this.type = template.type;
+    Object.defineProperty(this, 'name', { value : template.name });
+    Object.defineProperty(this, 'type', { value : template.type });
     this.bindTranslation = template.translate;
     this.bindRotation = template.rotate;
     Object.defineProperty(this, 'bindScale', { value : template.scale});

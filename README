@@ -2,3 +2,5 @@ Odin is a demo created to showcase what you can do with WebGL and hopefully insp
 It uses collada as a source format and aims to be able to read both COLLADA directly as well as a run-time format created from COLLADA suitable for releases.
 
 The demo, the viewer and the COLLADA pipeline is still a work in progress.
+
+Check out the live demo at http://operasoftware.github.com/Odin/
