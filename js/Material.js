@@ -13,12 +13,12 @@ function getConeTexture() {
 
         // Generate a spot cone image
         var conecanvas = document.createElement('canvas');
-        var context = conecanvas.getContext('2d');
         var coneLevel = 0;
         var coneTexSize = 1024;
-
         conecanvas.width = coneTexSize;
         conecanvas.height = coneTexSize;
+        var context = conecanvas.getContext('2d');
+
         if (coneTexSize > 2) {
             var gradient = context.createRadialGradient(coneTexSize/2, coneTexSize/2, 0, coneTexSize/2, coneTexSize/2, coneTexSize/2);
             gradient.addColorStop(0.00, 'rgba(255,255,255,1.0)');
@@ -112,30 +112,33 @@ function MaterialPrototype() {
 
         this.defines = [];
         if (this.hasDiffuseTex) {
-            this.defines.push('DIFFUSE_TEXTURE');
+            this.defines.push({key:'DIFFUSE_TEXTURE', value:true});
         }
         if (this.hasShininessTex) {
-            this.defines.push('SHININESS_TEXTURE');
+            this.defines.push({key:'SHININESS_TEXTURE', value:true});
         }
         if (this.hasNormalMapTex) {
-            this.defines.push('NORMAL_TEXTURE');
+            this.defines.push({key:'NORMAL_TEXTURE', value:true});
         }
         if (this.hasEmissiveTex) {
-            this.defines.push('EMISSIVE_TEXTURE');
+            this.defines.push({key:'EMISSIVE_TEXTURE', value:true});
         }
         if (this.hasSpecularTex) {
-            this.defines.push('SPECULAR_TEXTURE');
+            this.defines.push({key:'SPECULAR_TEXTURE', value:true});
         }
         if (this.skinned) {
-            this.defines.push('SKINNED');
+            this.defines.push({key:'SKINNED', value:true});
         }
         if (this.stitched) {
-            this.defines.push('STITCHED');
+            this.defines.push({key:'STITCHED', value:true});
         }
         if (this.shadowReceiver) {
-            this.defines.push('SHADOWED');
+            this.defines.push({key:'SHADOWED', value:true});
         }
-        this.defines.push(this.type.toUpperCase());
+        this.defines.push({key:this.type.toUpperCase(), value:true});
+        if (globalMaterialProperties.maxLights) {
+            this.defines.push({key:'MAX_LIGHTS', value:globalMaterialProperties.maxLights});
+        }
 
         if (this.custom) {
             this.doFileRequest('shaders/' + this.custom + '_vertex.txt', standardVSCallback);
@@ -380,7 +383,13 @@ function MaterialPrototype() {
 
                 gl.enableVertexAttribArray(this.shaderProgram.vertexNormalAttribute);
 
-                if (numLights > 0) {
+                var hasSpotLight = false;
+                for (var l = 0; l < numLights; ++l)
+                    if (lights[l].subtype == 'spot') {
+                        hasSpotLight = true;
+                        break;
+                    }
+                if (hasSpotLight) {
                     gl.activeTexture(gl.TEXTURE3);
                     gl.bindTexture(gl.TEXTURE_2D, getConeTexture());
                     gl.uniform1i(this.shaderProgram.lightConeSamplerUniform, 3);

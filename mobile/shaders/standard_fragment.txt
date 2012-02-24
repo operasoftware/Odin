@@ -1,0 +1,242 @@
+##ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+##else
+precision mediump float;
+##endif
+
+#ifdef MATTE
+#ifdef DIFFUSE_TEXTURE
+varying vec2 vTextureCoord;
+uniform sampler2D uSampler;
+#endif
+uniform vec4 uDiffuseColor;
+void main(void) {
+#ifdef DIFFUSE_TEXTURE
+    gl_FragColor = texture2D(uSampler, vTextureCoord.st);
+#else
+    gl_FragColor = uDiffuseColor;
+#endif
+}
+#else
+
+#ifdef SHADOWMAP
+varying vec4 vPosition;
+uniform vec4 uLightLocation;
+uniform int uLightType;  // 0 = point, 1 = spot, 2 = directional
+uniform mat4 uLightViewMatrix;
+
+void main(void) {
+    /*float lightLen;
+    if (uLightType == 2) {
+        vec4 lightDir = uLightViewMatrix * vPosition;
+        lightLen = -lightDir.z/uLightLocation.w;
+    } else {
+        vec3 lightDir = uLightLocation.xyz - vPosition.xyz;
+        lightLen = length(lightDir)/uLightLocation.w;
+    }
+    vec4 pack = vec4(1.0, 256.0, 65536.0, 16777216.0);
+    gl_FragColor = pack*lightLen;*/
+	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+}
+#else
+
+#ifdef NORMAL_TEXTURE
+// Enable OES_standard_derivatives if available and normalmapping is enabled
+##ifdef GL_OES_standard_derivatives
+#extension GL_OES_standard_derivatives : enable
+##endif
+#endif
+
+varying vec4 vPosition;
+varying vec4 vTransformedNormal;
+#ifdef DIFFUSE_TEXTURE || SHININESS_TEXTURE || NORMAL_TEXTURE || SPECULAR_TEXTURE
+varying vec2 vTextureCoord;
+#endif
+#ifdef EMISSIVE_TEXTURE
+varying vec2 vEmissiveTexCoord;
+#endif
+
+#ifdef PHONG
+##ifndef MAX_LIGHTS
+##define MAX_LIGHTS 8
+##endif
+#ifndef SHININESS_TEXTURE
+uniform float uMaterialShininess;
+#endif
+uniform vec3 uCameraPosition;
+#endif
+
+uniform vec3 uAmbientColor;
+
+/* Light sources */
+uniform int uNumLights;
+uniform int uLightType[MAX_LIGHTS]; // 0 = point, 1 = spot, 2 = directional
+uniform vec4 uLightLocation[MAX_LIGHTS];
+uniform mat4 uLightViewMatrix[MAX_LIGHTS];
+uniform mat4 uLightVPMatrix[MAX_LIGHTS];
+#ifdef PHONG
+uniform vec3 uLightSpecularColor[MAX_LIGHTS];
+#endif
+uniform vec3 uLightDiffuseColor[MAX_LIGHTS];
+#ifdef SHADOWED
+uniform int uCastsShadows[MAX_LIGHTS];
+uniform sampler2D uShadowSampler[MAX_LIGHTS];
+#endif
+
+#ifdef DIFFUSE_TEXTURE
+uniform sampler2D uSampler;
+#else
+uniform vec4 uDiffuseColor;
+#endif
+#ifdef SHININESS_TEXTURE
+uniform sampler2D uShininessSampler;
+#endif
+#ifdef NORMAL_TEXTURE
+uniform sampler2D uNormalSampler;
+#endif
+uniform sampler2D uLightConeSampler;
+#ifdef EMISSIVE_TEXTURE
+uniform sampler2D uEmissiveSampler;
+#else
+uniform vec4 uEmissiveColor;
+#endif
+#ifdef SPECULAR_TEXTURE
+uniform sampler2D uSpecularSampler;
+#endif
+
+
+void main(void) {
+#ifdef PHONG
+#ifdef SHININESS_TEXTURE
+    float shininess = 30.0 * texture2D(uShininessSampler, vTextureCoord.st).r;
+#else
+    float shininess = uMaterialShininess;
+#endif
+#endif
+
+    vec3 normal = normalize(vTransformedNormal.xyz);
+#ifdef NORMAL_TEXTURE
+##ifdef GL_OES_standard_derivatives
+    vec2 deltaTexX = dFdx(vTextureCoord);
+    vec2 deltaTexY = dFdy(vTextureCoord);
+    vec4 deltaPosX = dFdx(vPosition);
+    vec4 deltaPosY = dFdy(vPosition);
+    vec3 tangent = normalize(deltaTexY.t * deltaPosX.xyz - deltaTexX.t * deltaPosY.xyz);
+    vec3 bitangent = normalize(-deltaTexY.s * deltaPosX.xyz + deltaTexX.s * deltaPosY.xyz);
+    mat3 tsTransform = mat3(tangent, bitangent, normal);
+    normal = texture2D(uNormalSampler, vTextureCoord.st).xyz * 2.0 - vec3(1.0);
+    normal = normalize(tsTransform * normal);
+##endif
+#endif
+
+    vec3 diffuseContrib = uAmbientColor;
+#ifdef PHONG
+    vec3 specularContrib = vec3(0);
+#endif
+
+    // Iterate light sources
+    float lightDist, attenuation, diffuseLightWeighting;
+    vec2 lightTextureCoord;
+    vec3 lightLength, lightDirection, lightContrib;
+    vec4 lsPos;
+#ifdef PHONG
+    vec3 specular, viewDirection, reflectionDirection;
+#endif
+#ifdef SHADOWED
+    float shadowDist;
+    vec4 shadow, lvsPos;
+    const vec4 unpack = vec4(1.0, 1.0/256.0, 1.0/65536.0, 1.0/16777216.0);
+#endif
+    for (int l = 0; l < MAX_LIGHTS; ++l)
+    {
+        if (l >= uNumLights)
+            continue;
+
+        if (uLightType[l] == 2) {
+            lightDirection = normalize(-uLightLocation[l].xyz);
+        } else {
+            lightLength = uLightLocation[l].xyz - vPosition.xyz;
+            lightDirection = normalize(lightLength);
+        }
+
+#ifdef SHADOWED
+        shadowDist = 1.0e5;
+#endif
+        if (uLightType[l] != 0) {
+            lsPos = uLightVPMatrix[l] * vPosition;
+            //if (lsPos.z < 0.0)
+                //continue;
+            lightTextureCoord = (lsPos.xy/lsPos.w)*0.5+vec2(0.5);
+#ifdef SHADOWED
+            if (uCastsShadows[l] != 0) {
+                if (l == 0) shadow = texture2D(uShadowSampler[0], lightTextureCoord);
+                else if (l == 1) shadow = texture2D(uShadowSampler[1], lightTextureCoord);
+                else if (l == 2) shadow = texture2D(uShadowSampler[2], lightTextureCoord);
+                else if (l == 3) shadow = texture2D(uShadowSampler[3], lightTextureCoord);
+                else if (l == 4) shadow = texture2D(uShadowSampler[4], lightTextureCoord);
+                else if (l == 5) shadow = texture2D(uShadowSampler[5], lightTextureCoord);
+                else if (l == 6) shadow = texture2D(uShadowSampler[6], lightTextureCoord);
+                else shadow = texture2D(uShadowSampler[7], lightTextureCoord);
+                shadowDist = dot(shadow, unpack);
+            }
+#endif
+        }
+        if (uLightType[l] == 2) {
+#ifdef SHADOWED
+            lvsPos = uLightViewMatrix[l] * vPosition;
+            lightDist = -lvsPos.z / uLightLocation[l].w;
+            lightDist *= 0.9999;
+#endif
+            attenuation = 1.0;
+        } else {
+            lightDist = length(lightLength) / uLightLocation[l].w;
+            lightDist *= 0.9999;
+            attenuation = clamp(1.0 - lightDist, 0.0, 1.0);
+        }
+#ifdef SHADOWED
+        if (lightDist > shadowDist)
+            continue;
+#endif
+
+        diffuseLightWeighting = dot(normal, lightDirection);
+        if (diffuseLightWeighting > 0.0) {
+            lightContrib = vec3(attenuation);
+            if (uLightType[l] == 1)
+                lightContrib *= texture2D(uLightConeSampler, lightTextureCoord).rgb;
+            diffuseContrib += uLightDiffuseColor[l] * lightContrib * diffuseLightWeighting;
+
+#ifdef PHONG
+#ifdef SPECULAR_TEXTURE
+            specular = uLightSpecularColor[l] * texture2D(uSpecularSampler, vTextureCoord.st).rgb;
+#else
+            specular = uLightSpecularColor[l];
+#endif
+            viewDirection = normalize(vPosition.xyz-uCameraPosition);
+            reflectionDirection = reflect(lightDirection, normal);
+            specular *= pow(max(dot(reflectionDirection, viewDirection), 0.0), shininess);
+            specularContrib += specular * lightContrib;
+#endif
+        }
+    }
+
+#ifdef DIFFUSE_TEXTURE
+    gl_FragColor = texture2D(uSampler, vTextureCoord.st);
+#else
+    gl_FragColor = uDiffuseColor;
+#endif
+
+    gl_FragColor.rgb *= diffuseContrib;
+
+#ifdef EMISSIVE_TEXTURE
+    gl_FragColor.rgb += texture2D(uEmissiveSampler, vEmissiveTexCoord).rgb;
+#else
+    gl_FragColor.rgb += uEmissiveColor.rbg;
+#endif
+
+#ifdef PHONG
+    gl_FragColor.rgb += specularContrib;
+#endif
+}
+
+#endif
+#endif

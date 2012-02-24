@@ -1,0 +1,13 @@
+{
+  "name" : "blinn2-fx",
+  "stitched" : true,
+  "type" : "phong",
+  "ambient" : [0.0,0.0,0.0,1],
+  "diffuse" : "textures/Color_512.jpg",
+  "diffuse_uv" : 1,
+  "emission" : "textures/SI%20512.jpg",
+  "emission_uv" : 0,
+  "shininess" : [10],
+  "specular" : "textures/S_512.jpg",
+  "specular_uv" : 3
+}
