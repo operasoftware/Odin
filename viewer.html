@@ -2,6 +2,7 @@
   <head>
     <title>COLLADA WebGL viewer</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
     <link href='http://fonts.googleapis.com/css?family=Ubuntu:700' rel='stylesheet' type='text/css'>
     <link href='images.css' rel='stylesheet' type='text/css'>
     <link href='viewer.css' rel='stylesheet' type='text/css'>
@@ -37,6 +38,7 @@
       var toolBar;
       var toolBarWidth;
       var toolBarShowing = true;
+      var fileDialogShowing = false;
       var pinTools = true;
       var outliner;
       var lastMouseX;
@@ -197,6 +199,37 @@
         lastMouseY = evt.clientY;
       }
 
+      function onTouchStart(evt){
+        evt.preventDefault();
+        lastMouseX = evt.changedTouches[0].pageX;
+        lastMouseY = evt.changedTouches[0].pageY;
+        if (trackSelected && scene) {
+          scene.currentCamera.startTrack(evt.changedTouches[0].pageX, evt.changedTouches[0].pageY, arcball);
+        }
+      }
+
+      function onTouchEnd(evt){
+        evt.preventDefault();
+      }
+
+      function onTouchMove(evt){
+        evt.preventDefault();
+        var dx = evt.changedTouches[0].pageX - lastMouseX;
+        var dy = evt.changedTouches[0].pageY - lastMouseY;
+        if (scene) {
+          if (zoomSelected)
+            scene.currentCamera.zoom(-dx / 100, dy / 100);
+          else if (panSelected)
+            scene.currentCamera.pan(-dx / 100, dy / 100);
+          else if (trackSelected)
+            scene.currentCamera.track(evt.changedTouches[0].pageX, evt.changedTouches[0].pageY, arcball);
+          if (zoomSelected || panSelected || trackSelected)
+            update();
+        }
+        lastMouseX = evt.changedTouches[0].pageX;
+        lastMouseY = evt.changedTouches[0].pageY;
+      }
+
       function KeyDownListener(e) {
         if (e.keyCode == 37)
           scene.currentCamera.parent.pan(-0.1,0);
@@ -253,7 +286,7 @@
       function initWebGL() {
         statusBar = document.getElementById("text");
         canvas = document.getElementById("my-canvas");
-        gl = canvas.getContext("experimental-webgl");
+        gl = canvas.getContext("experimental-webgl", { alpha : false });
         if (gl) {
           gl.getExtension("OES_standard_derivatives");
           gl.clearColor(0.75, 0.75, 0.75, 1.0);
@@ -283,7 +316,7 @@
           if (scene.currentCamera) {
             scene.currentCamera.setMatrices();
           } else {
-            projectionMatrix().makePerspective(45, canvas.width/canvas.height, 0.1, 1000.0);
+            projectionMatrix().makePerspective(45, canvas.width/canvas.height, 0.1, 100.0);
           }
 
           scene.update(dt);
@@ -344,13 +377,30 @@
         gameArea.style.marginTop = (-newHeight / 2) + 'px';
         gameArea.style.marginLeft = (-newWidth / 2) + 'px';
 
-        canvas.offsetX = (window.innerWidth - newWidth) / 2;
-        canvas.offsetY = (window.innerHeight - newHeight) / 2;
+        canvas.style.width = newWidth;
+        canvas.style.height = newHeight;
+        //newWidth = newWidth / 4;
+        //newHeight = newHeight / 4;
         canvas.width = newWidth;
         canvas.height = newHeight;
+        canvas.offsetX = (window.innerWidth - newWidth) / 2;
+        canvas.offsetY = (window.innerHeight - newHeight) / 2;
+
         gl.viewport(0, 0, canvas.width, canvas.height);
         arcball.setBounds(canvas.width, canvas.height);
         update();
+      }
+
+      function initViewer() {
+        window.addEventListener('resize', resizeGame, false);
+        window.addEventListener('orientationchange', resizeGame, false);
+        window.addEventListener('mousemove', onMouseMove, false);
+        window.addEventListener('mousedown', onMouseDown, false);
+        window.addEventListener('mouseup', onMouseUp, false);
+        canvas.addEventListener('touchstart', onTouchStart, false);
+        canvas.addEventListener('touchend', onTouchEnd, false);
+        canvas.addEventListener('touchmove', onTouchMove, false);
+        showTools(true);
       }
 
       function setAmbientLevel(ambient) {
@@ -411,6 +461,7 @@
       }
 
       function closeFileDialog() {
+        fileDialogShowing = false;
         var dialog = document.getElementById('file-dialog');
         dialog.style.display = "none";
       }
@@ -431,16 +482,9 @@
         }
         span.innerHTML = url;
       }
-
-      window.addEventListener('resize', resizeGame, false);
-      window.addEventListener('orientationchange', resizeGame, false);
-      window.addEventListener('mousemove', onMouseMove, false);
-      window.addEventListener('mousedown', onMouseDown, false);
-      window.addEventListener('mouseup', onMouseUp, false);
-
     </script>
   </head>
-  <body onload="initWebGL();resizeGame();" style="font-family: 'Ubuntu', sans-serif; font-size:10pt;">
+  <body onload="initWebGL();resizeGame();initViewer();" style="font-family: 'Ubuntu', sans-serif; font-size:10pt;">
     <div id="rtArea">
       <canvas id="my-canvas"></canvas>
       <div id="configview">
