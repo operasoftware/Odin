@@ -33,6 +33,8 @@
       var updateInterval = 30;
       var spin = 0;
       var dx = [0,0,0];
+      var leftDown = false;
+      var downOnButton = false;
 
       function ErrorMessage(msg) {
         alert(msg);
@@ -88,6 +90,9 @@
         window.addEventListener('touchstart', onTouchStart, false);
         window.addEventListener('touchmove', onTouchMove, false);
         window.addEventListener('touchend', onTouchEnd, false);
+        window.addEventListener('mousedown', onMouseDown, false);
+        window.addEventListener('mousemove', onMouseMove, false);
+        window.addEventListener('mouseup', onMouseUp, false);
       }
 
       function update() {
@@ -132,37 +137,110 @@
         return false;
       }
 
+      function onMouseDown(evt) {
+        if (evt.button == 0) {
+          leftDown = true;
+          onDown(evt, evt.pageX, evt.pageY);
+        }
+      }
+
+      function onMouseMove(evt) {
+        if (leftDown) {
+          onMove(evt, evt.pageX, evt.pageY);
+        }
+      }
+
+      function onMouseUp(evt) {
+        if (evt.button == 0) {
+          leftDown = false;
+          onUp(evt, evt.pageX, evt.pageY);
+        }
+      }
+
       function onTouchStart(evt) {
-        if (onButtons(evt.changedTouches[0].pageX, evt.changedTouches[0].pageY))
-          return;
-        evt.preventDefault();
-        lastMouseX = evt.changedTouches[0].pageX;
-        dx[0] = 0; dx[1] = 0; dx[2] = 0;
+        onDown(evt, evt.changedTouches[0].pageX, evt.changedTouches[0].pageY);
       }
 
       function onTouchMove(evt) {
-        evt.preventDefault();
-        dx[0] = dx[1];
-        dx[1] = dx[2];
-        dx[2] = evt.changedTouches[0].pageX - lastMouseX;
-        if (sceneIsLoaded && characterIsLoaded) {
-          charRoot.rotate = [0, charRoot.rotate[1] + dx[2], 0];
-        }
-        lastMouseX = evt.changedTouches[0].pageX;
+        onMove(evt, evt.changedTouches[0].pageX, evt.changedTouches[0].pageY);
       }
 
       function onTouchEnd(evt) {
+        onUp(evt, evt.changedTouches[0].pageX, evt.changedTouches[0].pageY);
+      }
+
+      function onDown(evt, x, y) {
+        downOnButton = onButtons(x, y);
+        if (downOnButton)
+          return;
         evt.preventDefault();
-        spin = (dx[0] + dx[1] + dx[2]) / 3;
+        lastMouseX = x;
+        dx[0] = 0; dx[1] = 0; dx[2] = 0;
+      }
+
+      function onMove(evt, x, y) {
+        if (downOnButton)
+          return;
+        evt.preventDefault();
+        dx[0] = dx[1];
+        dx[1] = dx[2];
+        dx[2] = x - lastMouseX;
+        if (sceneIsLoaded && characterIsLoaded) {
+          charRoot.rotate = [0, charRoot.rotate[1] + dx[2], 0];
+        }
+        lastMouseX = x;
+      }
+
+      function onUp(evt, x, y) {
+        evt.preventDefault();
+        if (!downOnButton)
+          spin = (dx[0] + dx[1] + dx[2]) / 3;
       }
 
     </script>
+    <style>
+      body {
+        color: white;
+        margin: 0px;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        background-image: url("backdrop.png");
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+      canvas {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-left: -130px;
+        margin-top: -200px;
+      }
+      img.ico {
+        position: absolute;
+        top: 50%;
+        right: 0%;
+        margin-right: 0px;
+      }
+      img.banner {
+        height: 98%;
+        position: absolute;
+        margin: 1%;
+      }
+      @media screen and (min-height: 800px) {
+        img.banner {
+          height: 784px;
+          top: 50%;
+          margin-top: -400px;
+        }
+      }
+    </style>
   </head>
-  <body onload="initWebGL()" style='color: white; margin: 0px; width: 100%; height: 100%; background-color: black; background-image: url("backdrop.png"); background-repeat: no-repeat; background-position: center'>
-      <canvas id="my-canvas" width='260' height='400' style='position: absolute; top: 50%; left: 50%; margin-left: -130px; margin-top: -200px'></canvas>
-      <img id='idle' src='idle.png' style='position: absolute; top: 50%; right: 0%; margin-right: 0px; margin-top: -150px' onclick='loadIdleAnim();'></img>
-      <img id='walk' src='walk.png' style='position: absolute; top: 50%; right: 0%; margin-right: 0px; margin-top: 0px' onclick='loadWalkAnim();'></img>
-      <img src='OperaMobile.png' style="height: 98%;position: absolute; top: 1%; left: 1%;"></img>
+  <body onload="initWebGL()">
+      <canvas id="my-canvas" width='260' height='400'></canvas>
+      <img id='idle' class='ico' src='idle.png' style='margin-top: -150px' onclick='loadIdleAnim();'></img>
+      <img id='walk' class='ico' src='walk.png' onclick='loadWalkAnim();'></img>
+      <img class='banner' src='OperaMobile.png'></img>
       <p id='fps' style='display: none'></p>
   </body>
 </html>
