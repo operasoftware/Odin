@@ -24,8 +24,11 @@ uniform mat4 uVPMatrix;
 uniform mat4 uNMatrix;
 #endif
 #ifdef SKINNED || STITCHED
-uniform mat4 uJointInvBindMatrices[30];
-uniform mat4 uJointMatrices[30];
+##ifndef MAX_BONES
+##define MAX_BONES 30
+##endif
+uniform mat4 uJointInvBindMatrices[MAX_BONES];
+uniform mat4 uJointMatrices[MAX_BONES];
 #endif
 
 #ifdef MATTE
