@@ -93,6 +93,11 @@
         window.addEventListener('mousedown', onMouseDown, false);
         window.addEventListener('mousemove', onMouseMove, false);
         window.addEventListener('mouseup', onMouseUp, false);
+
+        parseQueryParams();
+        if (qs.hasOwnProperty('fps'))
+          fps.style.display = 'inline';
+
       }
 
       function update() {
@@ -197,6 +202,22 @@
           spin = (dx[0] + dx[1] + dx[2]) / 3;
       }
 
+      function parseQueryParams() {
+        qs = new Array();
+        var query = window.location.search.substring(1);
+        var parms = query.split('&');
+        for (var i = 0; i < parms.length; ++i) {
+          var pos = parms[i].indexOf('=');
+          if (pos > 0) {
+            var key = parms[i].substring(0, pos);
+            var val = parms[i].substring(pos+1);
+            qs[key] = val;
+          } else {
+            qs[parms[i]] = undefined;
+          }
+        }
+      }
+
     </script>
     <style>
       body {
@@ -241,6 +262,6 @@
       <img id='idle' class='ico' src='idle.png' style='margin-top: -150px' onclick='loadIdleAnim();'></img>
       <img id='walk' class='ico' src='walk.png' onclick='loadWalkAnim();'></img>
       <img class='banner' src='OperaMobile.png'></img>
-      <p id='fps' style='display: none'></p>
+      <p id='fps' style='position:absolute; display: none'></p>
   </body>
 </html>
