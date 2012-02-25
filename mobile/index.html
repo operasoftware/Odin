@@ -73,9 +73,7 @@
         buttons = [document.getElementById("walk"), document.getElementById("idle")];
         gl = canvas.getContext("experimental-webgl", { alpha : true });
         if (gl) {
-          gl.getExtension("OES_standard_derivatives");
           gl.clearColor(0.0, 0.0, 0.0, 0.0);
-
           gl.clearDepth(1.0);
           gl.enable(gl.DEPTH_TEST);
           gl.depthFunc(gl.LEQUAL);
@@ -84,8 +82,6 @@
 
           scene = new Scene('json/mobile-a.json', function() { sceneLoaded(); }, canvas.width / canvas.height);
         }
-        globalMaterialProperties.ambient = [0.25, 0.25, 0.25];
-        globalMaterialProperties.maxLights = 1;
 
         window.addEventListener('touchstart', onTouchStart, false);
         window.addEventListener('touchmove', onTouchMove, false);
@@ -98,6 +94,20 @@
         if (qs.hasOwnProperty('fps'))
           fps.style.display = 'inline';
 
+        globalMaterialProperties.ambient = [0.25, 0.25, 0.25];
+        globalMaterialProperties.maxLights = 1;
+
+        var alod = 0;
+        if (qs.hasOwnProperty('alod'))
+          alod = qs['alod'];
+
+        globalMaterialProperties.animationLOD = alod;
+        if (alod == 2)
+          globalMaterialProperties.maxBones = 10;
+        else if (alod == 1)
+          globalMaterialProperties.maxBones = 18;
+        else
+          globalMaterialProperties.maxBones = 29;
       }
 
       function update() {

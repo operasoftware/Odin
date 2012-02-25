@@ -139,6 +139,9 @@ function MaterialPrototype() {
         if (globalMaterialProperties.maxLights) {
             this.defines.push({key:'MAX_LIGHTS', value:globalMaterialProperties.maxLights});
         }
+        if (globalMaterialProperties.maxBones) {
+            this.defines.push({key:'MAX_BONES', value:globalMaterialProperties.maxBones});
+        }
 
         if (this.custom) {
             this.doFileRequest('shaders/' + this.custom + '_vertex.txt', standardVSCallback);
