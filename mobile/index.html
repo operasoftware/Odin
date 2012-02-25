@@ -234,8 +234,8 @@
         position: absolute;
         top: 50%;
         left: 50%;
-        margin-left: -130px;
-        margin-top: -200px;
+        margin-left: -150px;
+        margin-top: -250px;
       }
       img.ico {
         position: absolute;
@@ -243,14 +243,19 @@
         right: 0%;
         margin-right: 0px;
       }
+      div {
+        position: absolute;
+        height: 100%;
+        background: white;
+      }
       img.banner {
         height: 98%;
-        position: absolute;
-        margin: 1%;
+        margin: 4px;
       }
       @media screen and (min-height: 800px) {
         img.banner {
-          height: 784px;
+          position: relative;
+          height: 800px;
           top: 50%;
           margin-top: -400px;
         }
@@ -258,10 +263,12 @@
     </style>
   </head>
   <body onload="initWebGL()">
-      <canvas id="my-canvas" width='260' height='400'></canvas>
+      <canvas id="my-canvas" width='300' height='500'></canvas>
       <img id='idle' class='ico' src='idle.png' style='margin-top: -150px' onclick='loadIdleAnim();'></img>
       <img id='walk' class='ico' src='walk.png' onclick='loadWalkAnim();'></img>
-      <img class='banner' src='OperaMobile.png'></img>
+      <div>
+        <img class='banner' src='OperaMobile.png'></img>
+      </div>
       <p id='fps' style='position:absolute; display: none'></p>
   </body>
 </html>
