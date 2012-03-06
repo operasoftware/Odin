@@ -271,6 +271,7 @@ var demo = new (function () {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.CULL_FACE);
+        gl.polygonOffset(1.1, 4.0);
 
         this.resize();
 

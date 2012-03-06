@@ -134,6 +134,8 @@ function MaterialPrototype() {
         }
         if (this.shadowReceiver) {
             this.defines.push({key:'SHADOWED', value:true});
+            // Might want to disable pcf for mobile and slow devices
+            this.defines.push({key:'SHADOWED_PCF', value:true});
         }
         this.defines.push({key:this.type.toUpperCase(), value:true});
         if (globalMaterialProperties.maxLights) {
@@ -260,17 +262,13 @@ function MaterialPrototype() {
                 this.getUniformLocation('lightLocationUniform', 'uLightLocation');
                 this.getUniformLocation('lightDiffuseColorUniform', 'uLightDiffuseColor');
                 this.getUniformLocation('lightTypeUniform', 'uLightType');
-                this.getUniformLocation('lightViewMatixUniform', 'uLightViewMatrix');
                 this.getUniformLocation('lightVPMatrixUniform', 'uLightVPMatrix');
                 if (this.shadowReceiver) {
                     this.getUniformLocation('castsShadowsUniform', 'uCastsShadows');
                     this.getUniformLocation('shadowSamplerUniform', 'uShadowSampler');
+                    this.getUniformLocation('shadowTexSizeUniform', 'uShadowTexSize');
                 }
                 this.getUniformLocation('lightConeSamplerUniform', 'uLightConeSampler');
-            } else if (this.type == 'shadowmap') {
-                this.getUniformLocation('lightLocationUniform', 'uLightLocation');
-                this.getUniformLocation('lightTypeUniform', 'uLightType');
-                this.getUniformLocation('lightViewMatixUniform', 'uLightViewMatrix');
             }
 
             if (this.type == 'phong') {
@@ -400,7 +398,6 @@ function MaterialPrototype() {
 
                 var lightType = [];
                 var lightLocation = [];
-                var lightViewMatix = [];
                 var lightVPMatrix = [];
                 var lightDiffuseColor = [];
                 var lightSpecularColor = [];
@@ -416,9 +413,12 @@ function MaterialPrototype() {
                         lightLocation.push(-lightPos.z0, -lightPos.z1, -lightPos.z2, light.radius);
                     else
                         lightLocation.push(lightPos.t0, lightPos.t1, lightPos.t2, light.radius);
-                    lightViewMatix.push(M4x4().make(lightPos).flatten());
 
-                    lightVPMatrix.push(light.viewProjectionMatrix().flatten());
+                    lightVP = M4x4().make(0.5, 0, 0, 0,
+                        0, 0.5, 0, 0,
+                        0, 0, 0.5, 0,
+                        0.5, 0.5, 0.5, 1.0).multiply(light.viewProjectionMatrix());
+                    lightVPMatrix.push(lightVP.flatten());
 
                     lightDiffuseColor.push(light.color[0], light.color[1], light.color[2]);
                     if (this.type == 'phong')
@@ -434,7 +434,6 @@ function MaterialPrototype() {
                 if (numLights > 0) {
                     gl.uniform1iv(this.shaderProgram.lightTypeUniform, lightType);
                     gl.uniform4fv(this.shaderProgram.lightLocationUniform, lightLocation);
-                    gl.uniformMatrix4fv(this.shaderProgram.lightViewMatixUniform, false, flatten(lightViewMatix));
                     gl.uniformMatrix4fv(this.shaderProgram.lightVPMatrixUniform, false, flatten(lightVPMatrix));
                     gl.uniform3fv(this.shaderProgram.lightDiffuseColorUniform, lightDiffuseColor);
                     if (this.type == 'phong')
@@ -443,6 +442,7 @@ function MaterialPrototype() {
                     if (this.shadowReceiver) {
                         gl.uniform1iv(this.shaderProgram.castsShadowsUniform, lightCastsShadows);
                         gl.uniform1iv(this.shaderProgram.shadowSamplerUniform, lightShadowSampler);
+                        gl.uniform2f(this.shaderProgram.shadowTexSizeUniform, lights[0].shadowmapSize, lights[0].shadowmapSize);
                         for (var l = 0; l < numLights; ++l) {
                             if (lights[l].castsShadows) {
                                 gl.activeTexture(gl.TEXTURE7 + l);
@@ -451,13 +451,6 @@ function MaterialPrototype() {
                         }
                     }
 
-                } else if (this.type == 'shadowmap') {
-                    var light = lights[0]; // HACKERY...
-                    var lightPos = light.getAccumulatedTransform();
-                    gl.uniform4f(this.shaderProgram.lightLocationUniform, lightPos.t0, lightPos.t1, lightPos.t2, light.radius);
-                    gl.uniform1i(this.shaderProgram.lightTypeUniform, light.getType());
-                    if (light.subtype=='directional')
-                        gl.uniformMatrix4fv(this.shaderProgram.lightViewMatixUniform, false, lightPos.flatten());
                 }
             }
 

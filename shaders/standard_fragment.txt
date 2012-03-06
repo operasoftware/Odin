@@ -4,6 +4,51 @@ precision highp float;
 precision mediump float;
 ##endif
 
+#ifdef SHADOWMAP || SHADOWED
+const float pack_max = 256.0*256.0*256.0*256.0-1.0;
+const vec4 pack_weight = vec4(256.0*256.0*256.0, 256.0*256.0, 256.0, 1.0) / pack_max;
+#endif
+#ifdef SHADOWMAP
+vec4 packFloat(float val)
+{
+	vec4 packedVal = floor(vec4(val)/pack_weight);
+	packedVal = mod(packedVal, 256.0);
+	return packedVal/255.0;
+}
+#endif
+
+#ifdef SHADOWED
+float unpackFloat(vec4 val)
+{
+	vec4 packedVal = val*255.0;
+	return dot(packedVal, pack_weight);
+}
+#ifdef SHADOWED_PCF
+uniform vec2 uShadowTexSize;
+float texture2DBilinearUnpack(sampler2D tex, vec2 tc)
+{
+	tc *= uShadowTexSize;
+	tc -= 0.5;
+	vec2 w = fract(tc);
+	tc -= w;
+	tc += 0.5;
+	tc /= uShadowTexSize;
+	vec2 tcTR = tc + vec2(1.0, 0.0)/uShadowTexSize;	
+	vec2 tcBL = tc + vec2(0.0, 1.0)/uShadowTexSize;	
+	vec2 tcBR = tc + vec2(1.0, 1.0)/uShadowTexSize;	
+	return unpackFloat(texture2D(tex, tc))*(1.0-w.x)*(1.0-w.y) +
+		unpackFloat(texture2D(tex, tcTR))*w.x*(1.0-w.y) +
+		unpackFloat(texture2D(tex, tcBL))*(1.0-w.x)*w.y +
+		unpackFloat(texture2D(tex, tcBR))*w.x*w.y;
+}
+
+float texture2DProjBilinearUnpack(sampler2D tex, vec4 tc)
+{
+	return texture2DBilinearUnpack(tex, tc.st/tc.w);
+}
+#endif
+#endif
+
 #ifdef MATTE
 #ifdef DIFFUSE_TEXTURE
 varying vec2 vTextureCoord;
@@ -20,23 +65,8 @@ void main(void) {
 #else
 
 #ifdef SHADOWMAP
-varying vec4 vPosition;
-uniform vec4 uLightLocation;
-uniform int uLightType;  // 0 = point, 1 = spot, 2 = directional
-uniform mat4 uLightViewMatrix;
-
 void main(void) {
-    /*float lightLen;
-    if (uLightType == 2) {
-        vec4 lightDir = uLightViewMatrix * vPosition;
-        lightLen = -lightDir.z/uLightLocation.w;
-    } else {
-        vec3 lightDir = uLightLocation.xyz - vPosition.xyz;
-        lightLen = length(lightDir)/uLightLocation.w;
-    }
-    vec4 pack = vec4(1.0, 256.0, 65536.0, 16777216.0);
-    gl_FragColor = pack*lightLen;*/
-	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    gl_FragColor = packFloat(gl_FragCoord.z);
 }
 #else
 
@@ -101,6 +131,31 @@ uniform vec4 uEmissiveColor;
 uniform sampler2D uSpecularSampler;
 #endif
 
+#ifdef SHADOWED
+float calcShadow(sampler2D shadowTex, vec4 lightPos)
+{
+    float lightDist = lightPos.z/lightPos.w;
+#ifdef SHADOWED_PCF
+    vec2 offset = step(0.4, fract(gl_FragCoord.xy * 0.5));
+    offset.y += offset.x;
+    if (offset.y > 1.1)
+        offset.y = 0.0;
+    float shadowDepth = texture2DProjBilinearUnpack(shadowTex, lightPos + vec4((vec2(-1.5, 0.5) + offset)*lightPos.ww/uShadowTexSize, 0.0, 0.0));
+    float shadow = step(lightDist, shadowDepth);
+    shadowDepth = texture2DProjBilinearUnpack(shadowTex, lightPos + vec4((vec2(0.5, 0.5) + offset)*lightPos.ww/uShadowTexSize, 0.0, 0.0));
+    shadow += step(lightDist, shadowDepth);
+    shadowDepth = texture2DProjBilinearUnpack(shadowTex, lightPos + vec4((vec2(-1.5, -1.5) + offset)*lightPos.ww/uShadowTexSize, 0.0, 0.0));
+    shadow += step(lightDist, shadowDepth);
+    shadowDepth = texture2DProjBilinearUnpack(shadowTex, lightPos + vec4((vec2(0.5, -1.5) + offset)*lightPos.ww/uShadowTexSize, 0.0, 0.0));
+    shadow += step(lightDist, shadowDepth);
+
+    return shadow / 4.0;
+#else
+    float shadowDepth = unpackFloat(texture2DProj(shadowTex, lightPos));
+    return step(lightDist, shadowDepth);
+#endif
+}
+#endif
 
 void main(void) {
 #ifdef PHONG
@@ -133,16 +188,10 @@ void main(void) {
 
     // Iterate light sources
     float lightDist, attenuation, diffuseLightWeighting;
-    vec2 lightTextureCoord;
     vec3 lightLength, lightDirection, lightContrib;
     vec4 lsPos;
 #ifdef PHONG
     vec3 specular, viewDirection, reflectionDirection;
-#endif
-#ifdef SHADOWED
-    float shadowDist;
-    vec4 shadow, lvsPos;
-    const vec4 unpack = vec4(1.0, 1.0/256.0, 1.0/65536.0, 1.0/16777216.0);
 #endif
     for (int l = 0; l < 8; ++l)
     {
@@ -156,50 +205,32 @@ void main(void) {
             lightDirection = normalize(lightLength);
         }
 
-#ifdef SHADOWED
-        shadowDist = 1.0e5;
-#endif
+        attenuation = 1.0;
         if (uLightType[l] != 0) {
             lsPos = uLightVPMatrix[l] * vPosition;
-            //if (lsPos.z < 0.0)
-                //continue;
-            lightTextureCoord = (lsPos.xy/lsPos.w)*0.5+vec2(0.5);
 #ifdef SHADOWED
             if (uCastsShadows[l] != 0) {
-                if (l == 0) shadow = texture2D(uShadowSampler[0], lightTextureCoord);
-                else if (l == 1) shadow = texture2D(uShadowSampler[1], lightTextureCoord);
-                else if (l == 2) shadow = texture2D(uShadowSampler[2], lightTextureCoord);
-                else if (l == 3) shadow = texture2D(uShadowSampler[3], lightTextureCoord);
-                else if (l == 4) shadow = texture2D(uShadowSampler[4], lightTextureCoord);
-                else if (l == 5) shadow = texture2D(uShadowSampler[5], lightTextureCoord);
-                else if (l == 6) shadow = texture2D(uShadowSampler[6], lightTextureCoord);
-                else shadow = texture2D(uShadowSampler[7], lightTextureCoord);
-                shadowDist = dot(shadow, unpack);
+                if (l == 0) attenuation = calcShadow(uShadowSampler[0], lsPos);
+                else if (l == 1) attenuation = calcShadow(uShadowSampler[1], lsPos);
+                else if (l == 2) attenuation = calcShadow(uShadowSampler[2], lsPos);
+                else if (l == 3) attenuation = calcShadow(uShadowSampler[3], lsPos);
+                else if (l == 4) attenuation = calcShadow(uShadowSampler[4], lsPos);
+                else if (l == 5) attenuation = calcShadow(uShadowSampler[5], lsPos);
+                else if (l == 6) attenuation = calcShadow(uShadowSampler[6], lsPos);
+                else attenuation = calcShadow(uShadowSampler[7], lsPos);
             }
 #endif
         }
-        if (uLightType[l] == 2) {
-#ifdef SHADOWED
-            lvsPos = uLightViewMatrix[l] * vPosition;
-            lightDist = -lvsPos.z / uLightLocation[l].w;
-            lightDist *= 0.9999;
-#endif
-            attenuation = 1.0;
-        } else {
+        if (uLightType[l] != 2) {
             lightDist = length(lightLength) / uLightLocation[l].w;
-            lightDist *= 0.9999;
-            attenuation = clamp(1.0 - lightDist, 0.0, 1.0);
+            attenuation *= clamp(1.0 - lightDist, 0.0, 1.0);
         }
-#ifdef SHADOWED
-        if (lightDist > shadowDist)
-            continue;
-#endif
 
         diffuseLightWeighting = dot(normal, lightDirection);
         if (diffuseLightWeighting > 0.0) {
             lightContrib = vec3(attenuation);
             if (uLightType[l] == 1)
-                lightContrib *= texture2D(uLightConeSampler, lightTextureCoord).rgb;
+                lightContrib *= texture2DProj(uLightConeSampler, lsPos).rgb;
             diffuseContrib += uLightDiffuseColor[l] * lightContrib * diffuseLightWeighting;
 
 #ifdef PHONG
