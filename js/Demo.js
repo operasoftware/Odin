@@ -258,6 +258,9 @@ var demo = new (function () {
         // The gl variable is used by other scripts
         window.gl = gl;
 
+        // Preload the cone texture.
+        getConeTexture();
+
         var that = this;
         window.addEventListener('resize', function(e) { that.resize(e); }, false);
         window.addEventListener('orientationchange', function(e) { that.resize(e); }, false);
