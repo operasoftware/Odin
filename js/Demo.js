@@ -258,6 +258,9 @@ var demo = new (function () {
         // The gl variable is used by other scripts
         window.gl = gl;
 
+        // Preload the cone texture.
+        getConeTexture();
+
         var that = this;
         window.addEventListener('resize', function(e) { that.resize(e); }, false);
         window.addEventListener('orientationchange', function(e) { that.resize(e); }, false);
@@ -271,6 +274,7 @@ var demo = new (function () {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.CULL_FACE);
+        gl.polygonOffset(1.1, 4.0);
 
         this.resize();
 

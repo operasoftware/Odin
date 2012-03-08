@@ -199,7 +199,8 @@ function ScenePrototype() {
         //alert(lightsToUpdate + '/'' + this.lights.length);
         // Update shadow maps for all the selected lights
         if (lightsToUpdate > 0) {
-            //gl.blendFunc(gl.ONE, gl.ZERO);
+            gl.disable(gl.BLEND);
+            gl.enable(gl.POLYGON_OFFSET);
             gl.depthFunc(gl.LEQUAL);
             for (var l = 0; l < lightsToUpdate; ++l) {
                 //updateLights[l].isRenderedWithoutSubScenes = updateLights[l].nextIsRenderedWithoutSubScenes;
@@ -210,6 +211,8 @@ function ScenePrototype() {
                     //updateLights[l].castsShadows = true;
                 }
             }
+            gl.disable(gl.POLYGON_OFFSET);
+            gl.enable(gl.BLEND);
             if (this.postProcess) {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.postProcess.backbufferFBO);
             } else {
