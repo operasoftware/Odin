@@ -1,4 +1,5 @@
-﻿<html>
+﻿<!doctype html>
+<html>
   <head>
     <title>Opera Mobile WebGL demo</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
@@ -60,6 +61,28 @@
         character.loadAnimation('json/anim-walk_anim.json', 'animation', true, function() { });
       }
 
+      function toggleFullscreen() {
+        var isFullscreen = document.fullScreenElement || document.mozFullScreen || document.webkitIsFullScreen;
+        if (isFullscreen) {
+          if (document.cancelFullScreen) {
+            document.cancelFullscreen();
+          } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+          } else if (document.webkitCancelFullScreen) {
+            document.webkitCancelFullScreen();
+          }
+        } else {
+          var elem = document.body;
+          if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+          } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+          } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+          }
+        }
+      }
+
       function sceneLoaded() {
         sceneIsLoaded = true;
         character = new Scene('json/character.json', function () { characterLoaded(); }, canvas.width / canvas.height);
@@ -70,7 +93,7 @@
       function initWebGL() {
         fps = document.getElementById('fps');
         canvas = document.getElementById("my-canvas");
-        buttons = [document.getElementById("walk"), document.getElementById("idle")];
+        buttons = [document.getElementById("idle"), document.getElementById("walk"), document.getElementById("fullscreen")];
         gl = canvas.getContext("experimental-webgl", { alpha : true });
         if (gl) {
           gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -207,9 +230,10 @@
       }
 
       function onUp(evt, x, y) {
-        evt.preventDefault();
-        if (!downOnButton)
+        if (!downOnButton) {
+          evt.preventDefault();
           spin = (dx[0] + dx[1] + dx[2]) / 3;
+        }
       }
 
       function parseQueryParams() {
@@ -270,6 +294,7 @@
       <canvas id="my-canvas" width='300' height='500'></canvas>
       <img id='idle' class='ico' src='idle.png' style='margin-top: -150px' onclick='loadIdleAnim();'></img>
       <img id='walk' class='ico' src='walk.png' onclick='loadWalkAnim();'></img>
+      <img id='fullscreen' class='ico' src='fullscreen.png' style='margin-top: 150px' onclick='toggleFullscreen();'></img>
       <img class='banner' src='OperaMobile.png'></img>
       <p id='fps' style='position:absolute; display: none'></p>
   </body>
