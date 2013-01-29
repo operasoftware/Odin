@@ -255,14 +255,18 @@
     </script>
     <style>
       body {
+	position: absolute;
         color: white;
         margin: 0px;
-        width: 100%;
-        height: 100%;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	right: 0;
         background-color: black;
-        background-image: url("backdrop.png");
+        background-image: url("backdrop.jpg");
         background-repeat: no-repeat;
         background-position: center;
+	background-attachment: fixed;
       }
       canvas {
         position: absolute;
@@ -282,7 +286,7 @@
       }
       @media screen and (min-height: 800px) {
         img.banner {
-          position: relative;
+          position: absolute;
           height: 800px;
           top: 50%;
           margin-top: -400px;
